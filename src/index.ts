@@ -1,17 +1,12 @@
-import express, { Express, Request, Response } from 'express';
-import router from './Controllers/productController';
+import express from "express";
+import productRouter from "./Api/Controllers/productController";
 
-const app: Express = express();
-const port: number = 3000;
+const app = express();
+app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Olá, Mundo com TypeScript!');
+// Aqui você passa o router exportado do controller
+app.use("/api", productRouter);
+
+app.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
 });
-
-app.use('/api', router);
-
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
-});
-
-
