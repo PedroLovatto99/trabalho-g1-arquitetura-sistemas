@@ -30,4 +30,61 @@ export class ProductService implements IProductService {
 
     return returnDto;
   }
+
+  async findAll(): Promise<ListProductDto[]> {
+    const products = await this.repo.findMany();
+
+    if (!products || products.length === 0) {
+      return [];
+    }
+
+    return products.map((p) => ({
+      slug: p.slug,
+      name: p.Name,
+      price: p.Price,
+      stock: p.Stock,
+    }));
+  }
+
+  async findbySlug(slug: string): Promise<ListProductDto> {
+    const products = await this.repo.findBySlug(slug);
+
+    if (!products) {
+      throw new Error("Nenhum produto encontrado");
+    }
+
+    return {
+      slug: products.slug,
+      name: products.Name,
+      price: products.Price,
+      stock: products.Stock,
+    };
+  }
+
+  async update(
+    slug: string,
+    dto: Partial<ProductDto>
+  ): Promise<ListProductDto> {
+    const patch: Partial<ProductEntity> = {};
+    if (dto.name !== undefined) patch.Name = dto.name;
+    if (dto.price !== undefined) patch.Price = dto.price;
+    if (dto.stock !== undefined) patch.Stock = dto.stock;
+
+    const updated = await this.repo.updateBySlug(slug, patch);
+    if (!updated) throw new Error("Produto não encontrado");
+
+    return {
+      slug: updated.slug,
+      name: updated.Name,
+      price: updated.Price,
+      stock: updated.Stock,
+    };
+  }
+
+  async delete(slug: string): Promise<void> {
+    const current = await this.repo.findBySlug(slug);
+    if (!current) throw new Error("Produto não encontrado");
+
+    await this.repo.delete(current.Name);
+  }
 }

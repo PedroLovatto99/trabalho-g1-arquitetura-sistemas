@@ -8,11 +8,11 @@ export interface FindManyParams {
 
 export interface IProductRepository {
   create(p: ProductEntity): Promise<ProductEntity>;
-//   findById(id: string): Promise<ProductEntity | null>;
-//   findMany(params?: FindManyParams): Promise<ProductEntity[]>;
-//   update(
-//     id: string,
-//     patch: Partial<ProductEntity>
-//   ): Promise<ProductEntity | null>;
-  delete(id: string): Promise<boolean>;
+  findBySlug(slug: string): Promise<ProductEntity | null>;
+  findMany(): Promise<ProductEntity[]>;
+  updateBySlug(
+    slug: string,
+    patch: Partial<ProductEntity>
+  ): Promise<ProductEntity | null>;
+  delete(slug: string): Promise<boolean>;
 }

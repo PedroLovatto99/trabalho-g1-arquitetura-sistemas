@@ -4,8 +4,6 @@ import type { ProductDto } from "../Dtos/ProductDto";
 
 export interface IProductService {
   create(dto: ProductDto): Promise<ListProductDto>;
-//   list(): Promise<ProductEntity[]>;
-//   get(id: string): Promise<ProductEntity | null>;
-//   update(id: string, dto: Partial<ProductDto>): Promise<ProductEntity | null>;
-//   remove(id: string): Promise<boolean>;
+  findAll(): Promise<ListProductDto[]>;
+  findbySlug(slug: string): Promise<ListProductDto>;
 }
