@@ -11,6 +11,14 @@ export class OrderService implements IOrderService {
     if (!dto.client || dto.client.trim().length < 3)
       throw new Error("Nome do cliente precisa ter mais que 3 caracteres");
 
+      if (dto.Products) {
+      dto.Products.forEach((p) => {
+        if (p.quantity > p.stock) {
+          throw new Error(`Produto ${p.name} não possui estoque suficiente`);
+        }
+      });
+    }
+
     const order = new OrderEntity();
     order.client = dto.client;
     order.Products = dto.Products?.map((p) => {
@@ -30,6 +38,7 @@ export class OrderService implements IOrderService {
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
+        quantity: p.quantity,
       })),
     };
   }
@@ -47,6 +56,7 @@ export class OrderService implements IOrderService {
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
+        quantity: p.quantity
       })),
     }));
   }
@@ -64,6 +74,7 @@ export class OrderService implements IOrderService {
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
+        quantity: p.quantity
       })),
     };
   }
@@ -80,7 +91,7 @@ async update(
         product.Name = p.name;
         product.Price = p.price;
         product.Stock = p.stock;
-        // Inicialize outros campos obrigatórios se necessário
+
         return product;
       });
     }
@@ -94,6 +105,7 @@ async update(
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
+        quantity: p.quantity
       })),
     };
   }
