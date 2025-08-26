@@ -1,6 +1,4 @@
 import { Router, Request, Response } from "express";
-import { ProductService } from "../../Application/Services/ProductService";
-import { ProductRepositoryMemory } from "../../Infrastructure/Repositories/ProductRepositoryMemory";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepositoryMemory } from "../../Infrastructure/Repositories/OrderRepositoryMemory";
 

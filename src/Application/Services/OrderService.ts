@@ -13,7 +13,7 @@ export class OrderService implements IOrderService {
 
       if (dto.Products) {
       dto.Products.forEach((p) => {
-        if (p.quantity > p.stock) {
+        if (p.stock < 1) {
           throw new Error(`Produto ${p.name} não possui estoque suficiente`);
         }
       });
@@ -26,7 +26,6 @@ export class OrderService implements IOrderService {
       product.Name = p.name;
       product.Price = p.price;
       product.Stock = p.stock;
-      // Se necessário, inicialize outros campos obrigatórios aqui
       return product;
     }) || [];
 
@@ -38,7 +37,6 @@ export class OrderService implements IOrderService {
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
-        quantity: p.quantity,
       })),
     };
   }
@@ -56,7 +54,6 @@ export class OrderService implements IOrderService {
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
-        quantity: p.quantity
       })),
     }));
   }
@@ -74,7 +71,6 @@ export class OrderService implements IOrderService {
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
-        quantity: p.quantity
       })),
     };
   }
@@ -105,7 +101,6 @@ async update(
         name: p.Name,
         price: p.Price,
         stock: p.Stock,
-        quantity: p.quantity
       })),
     };
   }
