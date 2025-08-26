@@ -1,11 +1,12 @@
 import express from "express";
 import productRouter from "./Api/Controllers/productController";
+import orderRouter from "./Api/Controllers/OrdersController"
 
 const app = express();
 app.use(express.json());
 
 // Aqui você passa o router exportado do controller
-app.use("/api", productRouter);
+app.use("/api", productRouter, orderRouter);
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");

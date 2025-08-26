@@ -1,36 +1,34 @@
 import { Router, Request, Response } from "express";
-import { ProductService } from "../../Application/Services/ProductService";
-import { ProductRepositoryMemory } from "../../Infrastructure/Repositories/ProductRepositoryMemory";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepositoryMemory } from "../../Infrastructure/Repositories/OrderRepositoryMemory";
 
 const orderService = new OrderService(new OrderRepositoryMemory());
 const router = Router();
 
-// POST /products
-router.post("/products", async (req: Request, res: Response) => {
+// POST /orders
+router.post("/orders", async (req: Request, res: Response) => {
   try {
     const created = await orderService.create(req.body);
     res.status(201).json(created);
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao criar produto" });
+    res.status(400).json({ message: error.message ?? "Erro ao criar pedido" });
   }
 });
 
-// GET /products
-router.get("/products", async (req: Request, res: Response) => {
+// GET /orders
+router.get("/orders", async (req: Request, res: Response) => {
   try {
     const response = await orderService.findAll();
     res.status(200).json(response);
   } catch (error: any) {
     res
       .status(400)
-      .json({ message: error.message ?? "Erro ao buscar produtos" });
+      .json({ message: error.message ?? "Erro ao buscar pedidos" });
   }
 });
 
-// GET /products/slug
-router.get("/products/:slug", async (req: Request, res: Response) => {
+// GET /orders/slug
+router.get("/orders/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug!;
     const response = await orderService.findbySlug(slug);
@@ -38,12 +36,12 @@ router.get("/products/:slug", async (req: Request, res: Response) => {
   } catch (error: any) {
     res
       .status(404)
-      .json({ message: error.message ?? "Erro ao buscar produto" });
+      .json({ message: error.message ?? "Erro ao buscar o pedido" });
   }
 });
 
-// PUT /products/:slug
-router.put("/products/:slug", async (req: Request, res: Response) => {
+// PUT /orders/:slug
+router.put("/orders/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug;
     if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
@@ -51,12 +49,12 @@ router.put("/products/:slug", async (req: Request, res: Response) => {
     const updated = await orderService.update(slug, req.body);
     res.status(200).json(updated); 
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao atualizar produto" });
+    res.status(400).json({ message: error.message ?? "Erro ao atualizar pedido" });
   }
 });
 
 // DELETE /products/:slug
-router.delete("/products/:slug", async (req: Request, res: Response) => {
+router.delete("/pedidos/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug;
     if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
