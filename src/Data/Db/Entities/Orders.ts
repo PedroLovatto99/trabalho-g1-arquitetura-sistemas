@@ -1,7 +1,8 @@
 import { BaseEntity } from "./BaseEntity";
 import { ProductEntity } from "./Product";
+import { ProductsOnOrdersEntity } from "./ProductsOnOrders";
 
 export class OrderEntity extends BaseEntity {
-    client!: String
-    Products!: ProductEntity[]
+    client!: string
+    Products!: ProductsOnOrdersEntity[]
 }

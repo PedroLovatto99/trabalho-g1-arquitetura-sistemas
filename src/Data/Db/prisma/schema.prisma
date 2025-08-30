@@ -1,0 +1,43 @@
+
+datasource db {
+  provider = "postgresql" // ou o seu banco de dados
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+// Modelo para  ProductEntity
+model Product {
+  id     String @id @default(uuid())
+  name   String
+  price  Float
+  stock  Int
+  slug   String @unique
+
+  orders ProductsOnOrders[]
+}
+
+// Modelo paraOrderEntity
+model Order {
+  id         String   @id @default(uuid())
+  clientName String   @map("client_name") // Representa a propriedade "client" da sua classe
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  products ProductsOnOrders[] // A lista de "itens do pedido"
+}
+
+// Tabela de junção explícita para a relação Muitos-para-Muitos
+model ProductsOnOrders {
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String @map("order_id")
+
+  product   Product @relation(fields: [productId], references: [id])
+  productId String  @map("product_id")
+
+  quantity Int
+
+  @@id([orderId, productId])
+}

@@ -7,12 +7,7 @@ export interface FindManyParams {
 }
 
 export interface IOrderRepository {
-  create(p: OrderEntity): Promise<OrderEntity>;
+  create(orderData: OrderEntity): Promise<OrderEntity>;
   findBySlug(slug: string): Promise<OrderEntity | null>;
   findMany(): Promise<OrderEntity[]>;
-  updateBySlug(
-    slug: string,
-    patch: Partial<OrderEntity>
-  ): Promise<OrderEntity | null>;
-  delete(slug: string): Promise<boolean>;
 }

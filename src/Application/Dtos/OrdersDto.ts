@@ -1,7 +1,19 @@
-import { ProductDto } from "./ProductDto"
+export interface CreateOrderDTO {
+  client: string;
+  products: {
+    productId: string;
+    quantity: number;
+  }[];
+}
 
-export interface OrderDTO {
-    client: String
-    Products: ProductDto[]
-
+export interface OrderResponseDTO {
+  id: string;
+  client: string;
+  createdAt: Date;
+  products: {
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
 }

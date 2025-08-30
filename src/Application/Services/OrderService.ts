@@ -1,114 +1,71 @@
 import { OrderEntity } from "../../Data/Db/Entities/Orders";
-import type { IOrderRepository } from "../../Infrastructure/Interfaces/IorderRepository";
-import type { OrderDTO } from "../Dtos/OrdersDto";
-import type { IOrderService } from "../Interfaces/IOrdersService";
-import { ProductEntity } from "../../Data/Db/Entities/Product";
+import { IOrderRepository } from "../../Infrastructure/Interfaces/IOrderRepository";
+import { CreateOrderDTO, OrderResponseDTO } from "../Dtos/OrdersDto";
+import { IOrderService } from "../Interfaces/IOrdersService";
+import { ProductsOnOrdersEntity } from "../../Data/Db/Entities/ProductsOnOrders";
 
 export class OrderService implements IOrderService {
   constructor(private repo: IOrderRepository) {}
-
-  async create(dto: OrderDTO): Promise<OrderDTO> {
+  
+  async create(dto: CreateOrderDTO): Promise<OrderResponseDTO> {
     if (!dto.client || dto.client.trim().length < 3)
       throw new Error("Nome do cliente precisa ter mais que 3 caracteres");
 
-      if (dto.Products) {
-      dto.Products.forEach((p) => {
-        if (p.stock < 1) {
-          throw new Error(`Produto ${p.name} não possui estoque suficiente`);
-        }
-      });
-    }
+    if (!dto.products || dto.products.length === 0)
+      throw new Error("O pedido precisa ter pelo menos um produto.");
 
     const order = new OrderEntity();
     order.client = dto.client;
-    order.Products = dto.Products?.map((p) => {
-      const product = new ProductEntity();
-      product.Name = p.name;
-      product.Price = p.price;
-      product.Stock = p.stock;
-      return product;
-    }) || [];
+
+    order.Products = dto.products.map((p) => {
+      if (p.quantity < 1) {
+        throw new Error("A quantidade do produto deve ser pelo menos 1.");
+      }
+      return new ProductsOnOrdersEntity({
+        productId: p.productId,
+        quantity: p.quantity,
+        orderId: order.id,
+      });
+    });
 
     const createdOrder = await this.repo.create(order);
 
-    return {
-      client: createdOrder.client,
-      Products: createdOrder.Products.map((p) => ({
-        name: p.Name,
-        price: p.Price,
-        stock: p.Stock,
-      })),
-    };
+    return this.mapToResponseDTO(createdOrder);
   }
 
-  async findAll(): Promise<OrderDTO[]> {
+  async findAll(): Promise<OrderResponseDTO[]> {
     const orders = await this.repo.findMany();
-
-    if (!orders || orders.length === 0) {
-      return [];
-    }
-
-    return orders.map((o) => ({
-      client: o.client,
-      Products: o.Products.map((p) => ({
-        name: p.Name,
-        price: p.Price,
-        stock: p.Stock,
-      })),
-    }));
+    return orders.map((order) => this.mapToResponseDTO(order));
   }
 
-  async findbySlug(slug: string): Promise<OrderDTO> {
+  async findbySlug(slug: string): Promise<OrderResponseDTO | null> {
     const order = await this.repo.findBySlug(slug);
-
     if (!order) {
-      throw new Error("Nenhum pedido encontrado");
+      return null;
     }
+    return this.mapToResponseDTO(order);
+  }
 
+  // // É melhor deletar por ID único em vez de slug
+  // async delete(id: string): Promise<void> {
+  //   const current = await this.repo.findById(id);
+  //   if (!current) {
+  //     throw new Error("Pedido não encontrado");
+  //   }
+  //   await this.repo.delete(id);
+  // }
+
+  private mapToResponseDTO(order: OrderEntity): OrderResponseDTO {
     return {
+      id: order.id,
       client: order.client,
-      Products: order.Products.map((p) => ({
-        name: p.Name,
-        price: p.Price,
-        stock: p.Stock,
+      createdAt: order.createdAt,
+      products: order.Products.map((item) => ({
+        productId: item.productId,
+        name: item.product!.Name,
+        price: item.product!.Price,
+        quantity: item.quantity,
       })),
     };
-  }
-
-async update(
-    slug: string,
-    dto: Partial<OrderDTO>
-  ): Promise<OrderDTO> {
-    const patch: Partial<OrderEntity> = {};
-    if (dto.client !== undefined) patch.client = dto.client;
-    if (dto.Products !== undefined) {
-      patch.Products = dto.Products.map((p) => {
-        const product = new ProductEntity();
-        product.Name = p.name;
-        product.Price = p.price;
-        product.Stock = p.stock;
-
-        return product;
-      });
-    }
-
-    const updated = await this.repo.updateBySlug(slug, patch);
-    if (!updated) throw new Error("Pedido não encontrado");
-
-    return {
-      client: updated.client,
-      Products: updated.Products.map((p) => ({
-        name: p.Name,
-        price: p.Price,
-        stock: p.Stock,
-      })),
-    };
-  }
-
-  async delete(slug: string): Promise<void> {
-    const current = await this.repo.findBySlug(slug);
-    if (!current) throw new Error("Pedido não encontrado");
-
-    await this.repo.delete(slug);
   }
 }
