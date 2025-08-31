@@ -8,7 +8,6 @@ export class ProductsOnOrdersEntity {
   productId!: string;
   quantity!: number;
 
-  
   product?: ProductEntity;
   order?: OrderEntity;
 

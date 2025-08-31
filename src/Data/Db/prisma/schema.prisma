@@ -25,7 +25,7 @@ model Order {
   id         String   @id @default(uuid())
   clientName String   @map("client_name") // Representa a propriedade "client" da sua classe
   createdAt  DateTime @default(now()) @map("created_at")
-
+   slug      String   @unique
   products ProductsOnOrders[] // A lista de "itens do pedido"
 }
 

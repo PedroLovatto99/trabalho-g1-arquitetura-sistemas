@@ -1,6 +1,7 @@
 import { prisma } from "../../Data/Db/Configurations/prisma";
-import type { ProductEntity } from "../../Data/Db/Entities/Product";
+import { ProductEntity } from "../../Data/Db/Entities/Product";
 import type { IProductRepository } from "../Interfaces/IProductRepository";
+import { Product as PrismaProduct } from '@prisma/client';
 
 export class ProductRepository implements IProductRepository {
   async create(productData: ProductEntity): Promise<ProductEntity> {
@@ -13,19 +14,19 @@ export class ProductRepository implements IProductRepository {
       },
     });
 
-    return newProduct as unknown as ProductEntity;
+    return this.mapToEntity(newProduct);
   }
 
   async findBySlug(slug: string): Promise<ProductEntity | null> {
     const product = await prisma.product.findUnique({
       where: { slug: slug },
     });
-    return product as unknown as ProductEntity | null;
+    return product ? this.mapToEntity(product) : null;
   }
 
   async findMany(): Promise<ProductEntity[]> {
     const products = await prisma.product.findMany();
-    return products as unknown as ProductEntity[];
+     return products.map(p => this.mapToEntity(p));
   }
 
   async updateBySlug(
@@ -61,7 +62,7 @@ export class ProductRepository implements IProductRepository {
         where: { slug: slug },
         data: dataToUpdate,
       });
-      return updatedProduct as unknown as ProductEntity;
+      return this.mapToEntity(updatedProduct);
     } catch (error) {
       return null;
     }
@@ -76,5 +77,15 @@ export class ProductRepository implements IProductRepository {
     } catch (error) {
       return false;
     }
+  }
+
+  private mapToEntity(prismaProduct: PrismaProduct): ProductEntity {
+    const entity = new ProductEntity();
+    entity.id = prismaProduct.id;
+    entity.Name = prismaProduct.name;
+    entity.Price = prismaProduct.price;
+    entity.Stock = prismaProduct.stock;
+    entity.slug = prismaProduct.slug;
+    return entity;
   }
 }
