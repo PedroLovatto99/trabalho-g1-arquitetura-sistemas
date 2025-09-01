@@ -59,7 +59,10 @@ router.delete("/:slug", async (req: Request, res: Response) => {
     const slug = req.params.slug;
     if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
 
-    await productService.delete(slug);
+    const response = await productService.delete(slug);
+    if(response === false){
+      return res.status(400).json({ message: "Não foi possível excluir o produto. Ele pode estar associado a pedidos." });
+    }
     res.status(204).send();
   } catch (error: any) {
     res.status(400).json({ message: error.message ?? "Erro ao excluir produto" });

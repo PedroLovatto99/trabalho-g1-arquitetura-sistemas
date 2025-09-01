@@ -6,4 +6,5 @@ export interface IProductService {
   create(dto: ProductDto): Promise<ListProductDto>;
   findAll(): Promise<ListProductDto[]>;
   findbySlug(slug: string): Promise<ListProductDto>;
+  delete(slug: string): Promise<boolean>;
 }
