@@ -83,10 +83,11 @@ export class ProductService implements IProductService {
     };
   }
 
-  async delete(slug: string): Promise<void> {
+  async delete(slug: string): Promise<boolean> {
     const current = await this.repo.findBySlug(slug);
+  
     if (!current) throw new Error("Produto não encontrado");
 
-    await this.repo.delete(current.name);
+    return await this.repo.delete(current.slug);
   }
 }

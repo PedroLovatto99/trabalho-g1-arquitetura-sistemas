@@ -18,7 +18,7 @@ model Product {
   slug   String @unique
 
   orders ProductsOnOrders[]
-}a
+}
 
 // Modelo paraOrderEntity
 model Order {
