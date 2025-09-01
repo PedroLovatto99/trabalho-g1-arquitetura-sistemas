@@ -1,5 +1,3 @@
-// src/Application/Services/OrderService.ts
-
 import { OrderEntity } from "../../Data/Db/Entities/Orders";
 import { IOrderRepository } from "../../Infrastructure/Interfaces/IOrderRepository";
 import { CreateOrderDTO, OrderResponseDTO } from "../Dtos/OrdersDto";
@@ -24,9 +22,9 @@ export class OrderService implements IOrderService {
         throw new Error("A quantidade do produto deve ser pelo menos 1.");
       }
       return new ProductsOnOrdersEntity({
-        productId: p.productSlug, 
+        productId: p.productId,
         quantity: p.quantity,
-        orderId: '', 
+        orderId: order.id,
       });
     });
 
@@ -47,16 +45,23 @@ export class OrderService implements IOrderService {
     }
     return this.mapToResponseDTO(order);
   }
-  
+
+  // // É melhor deletar por ID único em vez de slug
+  // async delete(id: string): Promise<void> {
+  //   const current = await this.repo.findById(id);
+  //   if (!current) {
+  //     throw new Error("Pedido não encontrado");
+  //   }
+  //   await this.repo.delete(id);
+  // }
+
   private mapToResponseDTO(order: OrderEntity): OrderResponseDTO {
     return {
       id: order.id,
-      slug: order.slug,
       client: order.client,
       createdAt: order.createdAt,
       products: order.Products.map((item) => ({
-        productId: item.product!.id, 
-        slug: item.product!.slug, 
+        productId: item.productId,
         name: item.product!.Name,
         price: item.product!.Price,
         quantity: item.quantity,
