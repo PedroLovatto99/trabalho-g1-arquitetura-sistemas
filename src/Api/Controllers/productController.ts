@@ -6,7 +6,7 @@ const productService = new ProductService(new ProductRepository());
 const router = Router();
 
 // POST /products
-router.post("/products", async (req: Request, res: Response) => {
+router.post("/", async (req: Request, res: Response) => {
   try {
     const created = await productService.create(req.body);
     res.status(201).json(created);
@@ -16,7 +16,7 @@ router.post("/products", async (req: Request, res: Response) => {
 });
 
 // GET /products
-router.get("/products", async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
   try {
     const response = await productService.findAll();
     res.status(200).json(response);
@@ -28,7 +28,7 @@ router.get("/products", async (req: Request, res: Response) => {
 });
 
 // GET /products/slug
-router.get("/products/:slug", async (req: Request, res: Response) => {
+router.get("/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug!;
     const response = await productService.findbySlug(slug);
@@ -41,7 +41,7 @@ router.get("/products/:slug", async (req: Request, res: Response) => {
 });
 
 // PUT /products/:slug
-router.put("/products/:slug", async (req: Request, res: Response) => {
+router.put("/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug;
     if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
@@ -54,7 +54,7 @@ router.put("/products/:slug", async (req: Request, res: Response) => {
 });
 
 // DELETE /products/:slug
-router.delete("/products/:slug", async (req: Request, res: Response) => {
+router.delete("/:slug", async (req: Request, res: Response) => {
   try {
     const slug = req.params.slug;
     if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });

@@ -91,6 +91,7 @@ export class OrderRepository implements IOrderRepository {
     orderEntity.id = prismaOrder.id;
     orderEntity.client = prismaOrder.clientName;
     orderEntity.createdAt = prismaOrder.createdAt;
+   // orderEntity.slug = prismaOrder.slug;
     
     orderEntity.Products = prismaOrder.products.map((item: any) => {
       const productEntity = new ProductEntity();

@@ -6,6 +6,14 @@ export interface CreateOrderDTO {
   }[];
 }
 
+export interface UpdateOrderDTO {
+  client: string;
+  products: {
+    productSlug: string;
+    quantity: number;
+  }[];
+}
+
 export interface OrderResponseDTO {
   id: string;
   client: string;

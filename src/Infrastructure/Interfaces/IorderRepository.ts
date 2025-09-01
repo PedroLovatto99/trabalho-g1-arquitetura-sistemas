@@ -10,4 +10,6 @@ export interface IOrderRepository {
   create(orderData: OrderEntity): Promise<OrderEntity>;
   findBySlug(slug: string): Promise<OrderEntity | null>;
   findMany(): Promise<OrderEntity[]>;
+  update(slug: string, orderData: Partial<OrderEntity>): Promise<OrderEntity | null>;
+  delete(slug: string): Promise<void>;
 }
