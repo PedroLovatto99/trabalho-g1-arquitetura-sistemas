@@ -15,17 +15,17 @@ export class ProductService implements IProductService {
     if (dto.stock < 0) throw new Error("Estoque não pode ser negativo");
 
     const product = new ProductEntity();
-    product.Name = dto.name;
-    product.Price = dto.price;
-    product.Stock = dto.stock;
+    product.name = dto.name;
+    product.price = dto.price;
+    product.stock = dto.stock;
 
     const products = await this.repo.create(product);
 
     const returnDto: ListProductDto = {
       slug: products.slug,
-      name: products.Name,
-      price: products.Price,
-      stock: products.Stock,
+      name: products.name,
+      price: products.price,
+      stock: products.stock,
     };
     console.log("🚀 ~ ProductService ~ create ~ returnDto:", returnDto)
 
@@ -41,9 +41,9 @@ export class ProductService implements IProductService {
 
     return products.map((p) => ({
       slug: p.slug,
-      name: p.Name,
-      price: p.Price,
-      stock: p.Stock,
+      name: p.name,
+      price: p.price,
+      stock: p.stock,
     }));
   }
 
@@ -56,9 +56,9 @@ export class ProductService implements IProductService {
 
     return {
       slug: products.slug,
-      name: products.Name,
-      price: products.Price,
-      stock: products.Stock,
+      name: products.name,
+      price: products.price,
+      stock: products.stock,
     };
   }
 
@@ -67,18 +67,18 @@ export class ProductService implements IProductService {
     dto: Partial<ProductDto>
   ): Promise<ListProductDto> {
     const patch: Partial<ProductEntity> = {};
-    if (dto.name !== undefined) patch.Name = dto.name;
-    if (dto.price !== undefined) patch.Price = dto.price;
-    if (dto.stock !== undefined) patch.Stock = dto.stock;
+    if (dto.name !== undefined) patch.name = dto.name;
+    if (dto.price !== undefined) patch.price = dto.price;
+    if (dto.stock !== undefined) patch.stock = dto.stock;
 
     const updated = await this.repo.updateBySlug(slug, patch);
     if (!updated) throw new Error("Produto não encontrado");
 
     return {
       slug: updated.slug,
-      name: updated.Name,
-      price: updated.Price,
-      stock: updated.Stock,
+      name: updated.name,
+      price: updated.price,
+      stock: updated.stock,
     };
   }
 
@@ -86,6 +86,6 @@ export class ProductService implements IProductService {
     const current = await this.repo.findBySlug(slug);
     if (!current) throw new Error("Produto não encontrado");
 
-    await this.repo.delete(current.Name);
+    await this.repo.delete(current.name);
   }
 }

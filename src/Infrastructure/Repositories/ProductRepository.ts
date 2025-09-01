@@ -1,32 +1,31 @@
 import { prisma } from "../../Data/Db/Configurations/prisma";
-import { ProductEntity } from "../../Data/Db/Entities/Product";
+import type { ProductEntity } from "../../Data/Db/Entities/Product";
 import type { IProductRepository } from "../Interfaces/IProductRepository";
-import { Product as PrismaProduct } from '@prisma/client';
 
 export class ProductRepository implements IProductRepository {
   async create(productData: ProductEntity): Promise<ProductEntity> {
     const newProduct = await prisma.product.create({
       data: {
-        name: productData.Name,
+        name: productData.name,
         slug: productData.slug,
-        price: productData.Price,
-        stock: productData.Stock,
+        price: productData.price,
+        stock: productData.stock,
       },
     });
 
-    return this.mapToEntity(newProduct);
+    return newProduct as unknown as ProductEntity;
   }
 
   async findBySlug(slug: string): Promise<ProductEntity | null> {
     const product = await prisma.product.findUnique({
       where: { slug: slug },
     });
-    return product ? this.mapToEntity(product) : null;
+    return product as unknown as ProductEntity | null;
   }
 
   async findMany(): Promise<ProductEntity[]> {
     const products = await prisma.product.findMany();
-     return products.map(p => this.mapToEntity(p));
+    return products as unknown as ProductEntity[];
   }
 
   async updateBySlug(
@@ -40,17 +39,17 @@ export class ProductRepository implements IProductRepository {
       stock?: number;
     } = {};
 
-    if (patch.Name !== undefined) {
-      dataToUpdate.name = patch.Name;
+    if (patch.name !== undefined) {
+      dataToUpdate.name = patch.name;
     }
     if (patch.slug !== undefined) {
       dataToUpdate.slug = patch.slug;
     }
-    if (patch.Price !== undefined) {
-      dataToUpdate.price = patch.Price;
+    if (patch.price !== undefined) {
+      dataToUpdate.price = patch.price;
     }
-    if (patch.Stock !== undefined) {
-      dataToUpdate.stock = patch.Stock;
+    if (patch.stock !== undefined) {
+      dataToUpdate.stock = patch.stock;
     }
 
     if (Object.keys(dataToUpdate).length === 0) {
@@ -62,7 +61,7 @@ export class ProductRepository implements IProductRepository {
         where: { slug: slug },
         data: dataToUpdate,
       });
-      return this.mapToEntity(updatedProduct);
+      return updatedProduct as unknown as ProductEntity;
     } catch (error) {
       return null;
     }
@@ -77,15 +76,5 @@ export class ProductRepository implements IProductRepository {
     } catch (error) {
       return false;
     }
-  }
-
-  private mapToEntity(prismaProduct: PrismaProduct): ProductEntity {
-    const entity = new ProductEntity();
-    entity.id = prismaProduct.id;
-    entity.Name = prismaProduct.name;
-    entity.Price = prismaProduct.price;
-    entity.Stock = prismaProduct.stock;
-    entity.slug = prismaProduct.slug;
-    return entity;
   }
 }
