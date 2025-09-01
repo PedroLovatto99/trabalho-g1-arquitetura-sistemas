@@ -1,7 +1,7 @@
 export interface CreateOrderDTO {
   client: string;
   products: {
-    productId: string;
+    productSlug: string;
     quantity: number;
   }[];
 }
@@ -10,8 +10,9 @@ export interface OrderResponseDTO {
   id: string;
   client: string;
   createdAt: Date;
+  slug: string;
   products: {
-    productId: string;
+    slug: string;
     name: string;
     price: number;
     quantity: number;

@@ -27,6 +27,7 @@ export class ProductService implements IProductService {
       price: products.Price,
       stock: products.Stock,
     };
+    console.log("🚀 ~ ProductService ~ create ~ returnDto:", returnDto)
 
     return returnDto;
   }
