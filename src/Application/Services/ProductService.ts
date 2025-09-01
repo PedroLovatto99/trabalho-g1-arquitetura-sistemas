@@ -40,6 +40,7 @@ export class ProductService implements IProductService {
     }
 
     return products.map((p) => ({
+      id: p.id,
       slug: p.slug,
       name: p.name,
       price: p.price,

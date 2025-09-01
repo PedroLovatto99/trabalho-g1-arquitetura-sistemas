@@ -15,4 +15,5 @@ export interface IProductRepository {
     patch: Partial<ProductEntity>
   ): Promise<ProductEntity | null>;
   delete(slug: string): Promise<boolean>;
+  findManyByIds(ids: string[]): Promise<ProductEntity[]>;
 }
