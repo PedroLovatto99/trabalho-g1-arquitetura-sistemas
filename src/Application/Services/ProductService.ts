@@ -72,7 +72,7 @@ export class ProductService implements IProductService {
     if (dto.price !== undefined) patch.price = dto.price;
     if (dto.stock !== undefined) patch.stock = dto.stock;
 
-    const updated = await this.repo.updateBySlug(slug, patch);
+    const updated = await this.repo.updateBySlug(slug, dto);
     if (!updated) throw new Error("Produto não encontrado");
 
     return {
@@ -82,6 +82,8 @@ export class ProductService implements IProductService {
       stock: updated.stock,
     };
   }
+
+  
 
   async delete(slug: string): Promise<boolean> {
     const current = await this.repo.findBySlug(slug);

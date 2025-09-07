@@ -1,16 +1,22 @@
-import { UpdateOrderDTO } from "../../Application/Dtos/OrdersDto";
-import type { OrderEntity } from "../../Data/Db/Entities/Orders";
+//import type { OrderEntity } from "../../Data/Db/Entities/Orders";
+import type { Order, Client, Status, Product, OrderPayment, TypePayment } from "@prisma/client";
+import { CreateOrderDTO, PaymentDTO, UpdateOrderDTO } from "../../Application/Dtos/OrdersDto";
 
-export interface FindManyParams {
-  offset?: number;
-  limit?: number;
-  search?: string;
-}
+export type FullOrder = Order & {
+  client: Client;
+  status: Status;
+  products: {
+    quantity: number;
+    product: Product;
+  }[];
+  payments: (OrderPayment & { typePayment: TypePayment })[];
+};
 
 export interface IOrderRepository {
-  create(orderData: OrderEntity): Promise<OrderEntity>;
-  findBySlug(slug: string): Promise<OrderEntity | null>;
-  findMany(): Promise<OrderEntity[]>;
-  update(slug: string, orderData: UpdateOrderDTO): Promise<OrderEntity | null>;
-  delete(slug: string): Promise<boolean>;
+  create(dto: CreateOrderDTO): Promise<FullOrder>;
+  findBySlug(slug: string): Promise<FullOrder | null>;
+  findManyByClientId(clientId: string): Promise<FullOrder[]>;
+  updateStatus(slug: string, statusId: number): Promise<FullOrder>;
+  cancelOrder(slug: string): Promise<FullOrder>;
+  confirmPayment(slug: string, payments: PaymentDTO[]): Promise<FullOrder>;
 }

@@ -1,28 +1,33 @@
 export interface CreateOrderDTO {
-  client: string;
+  clientId: string;
   products: {
-    productSlug: string;
+    productId: string;
     quantity: number;
   }[];
 }
 
-export interface UpdateOrderDTO {
-  client: string;
-  products: {
-    productSlug: string;
-    quantity: number;
-  }[];
+export interface PaymentDTO {
+  typePaymentId: number;
+  total: number;
+}
+
+export interface ConfirmPaymentDTO {
+  payments: PaymentDTO[];
 }
 
 export interface OrderResponseDTO {
-  id: string;
-  client: string;
-  createdAt: Date;
-  slug: string;
-  products: {
+    id: string;
     slug: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
+    createdAt: Date;
+    status: { name: string };
+    client: { id: string; name: string };
+    products: {
+        name: string;
+        price: number;
+        quantity: number;
+    }[];
+    payments: {
+        total: number;
+        type: string;
+    }[];
 }

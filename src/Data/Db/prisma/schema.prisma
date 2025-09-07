@@ -1,6 +1,5 @@
-
 datasource db {
-  provider = "postgresql" // ou o seu banco de dados
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -8,30 +7,75 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Modelo de Clientes
+model Client {
+  id        String  @id @default(uuid())
+  name      String
+  email     String  @unique
+  isDeleted Boolean @default(false) @map("is_deleted")
 
-// Modelo para  ProductEntity
+  orders Order[]
+}
+
+// Modelo de Produtos
 model Product {
-  id     String @id @default(uuid())
-  name   String
-  price  Float
-  stock  Int
-  slug   String @unique
+  id    String  @id @default(uuid())
+  name  String
+  price Float
+  stock Int
+  slug  String  @unique
 
   orders ProductsOnOrders[]
 }
 
-// Modelo paraOrderEntity
-model Order {
-  id         String   @id @default(uuid())
-  clientName String   @map("client_name") // Representa a propriedade "client" da sua classe
-  createdAt  DateTime @default(now()) @map("created_at")
-  slug      String   @unique
-  products ProductsOnOrders[] // A lista de "itens do pedido"
+// Modelo de Status (dados fixos, preenchidos via seed)
+model Status {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  orders Order[]
 }
 
-// Tabela de junção explícita para a relação Muitos-para-Muitos
+// Modelo de Tipos de Pagamento (dados fixos, preenchidos via seed)
+model TypePayment {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  orderPayments OrderPayment[]
+}
+
+// Modelo de Pedidos
+model Order {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  slug      String   @unique
+  isDeleted Boolean  @default(false) @map("is_deleted")
+
+  client    Client @relation(fields: [clientId], references: [id])
+  clientId  String @map("client_id")
+
+  status    Status @relation(fields: [statusId], references: [id])
+  statusId  Int    @map("status_id")
+
+  products ProductsOnOrders[]
+  payments OrderPayment[]
+}
+
+// Modelo de Pagamentos do Pedido
+model OrderPayment {
+  id    String @id @default(uuid())
+  total Float
+
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String @map("order_id")
+
+  typePayment   TypePayment @relation(fields: [typePaymentId], references: [id])
+  typePaymentId Int         @map("type_payment_id")
+}
+
+// Tabela de junção para Pedidos e Produtos
 model ProductsOnOrders {
-  order   Order  @relation(fields: [orderId], references: [id])
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId String @map("order_id")
 
   product   Product @relation(fields: [productId], references: [id])

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { ProductRepository } from "../../Infrastructure/Repositories/ProductRepository";
 import { ProductService } from "../../Application/Services/ProductService";
 
+
 const productService = new ProductService(new ProductRepository());
 const router = Router();
 
@@ -68,5 +69,28 @@ router.delete("/:slug", async (req: Request, res: Response) => {
     res.status(400).json({ message: error.message ?? "Erro ao excluir produto" });
   }
 });
+
+router.put("/:slug", async (req: Request, res: Response) => {
+    try {
+        const { slug } = req.params;
+        const updatedProduct = await productService.update(slug, req.body);
+        res.status(200).json(updatedProduct);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+
+// Nova rota para ajustar o estoque
+router.patch("/:slug/stock", async (req: Request, res: Response) => {
+    try {
+        const { slug } = req.params;
+        const updatedProduct = await productService.adjustStock(slug, req.body);
+        res.status(200).json(updatedProduct);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
 
 export default router;
