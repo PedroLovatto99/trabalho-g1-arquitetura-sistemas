@@ -7,12 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "prisma:seed": "prisma db seed --schema src/Data/Db/prisma/schema.prisma"
   },
   "prisma": {
     "schema": "src/Data/Db/prisma/schema.prisma",
     "seed": "ts-node prisma/seed.ts"
-
   },
   "keywords": [],
   "author": "",

@@ -1,13 +1,13 @@
 import { ProductEntity } from "../../Data/Db/Entities/Product";
 import type { IProductRepository } from "../../Infrastructure/Interfaces/IProductRepository";
 import type { ListProductDto } from "../Dtos/ListProductDto";
-import type { ProductDto } from "../Dtos/ProductDto";
+import type { CreateProductDto, ProductResponseDto } from "../Dtos/ProductDto";
 import type { IProductService } from "../Interfaces/IProductService";
 
 export class ProductService implements IProductService {
   constructor(private repo: IProductRepository) {}
 
-  async create(dto: ProductDto): Promise<ListProductDto> {
+  async create(dto: CreateProductDto): Promise<ListProductDto> {
     if (!dto.name || dto.name.trim().length < 3)
       throw new Error("Nome precisa ter mais que  3 caracteres");
 
@@ -65,7 +65,7 @@ export class ProductService implements IProductService {
 
   async update(
     slug: string,
-    dto: Partial<ProductDto>
+    dto: Partial<CreateProductDto>
   ): Promise<ListProductDto> {
     const patch: Partial<ProductEntity> = {};
     if (dto.name !== undefined) patch.name = dto.name;

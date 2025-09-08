@@ -10,6 +10,7 @@ generator client {
 // Modelo de Clientes
 model Client {
   id        String  @id @default(uuid())
+  slug      String  @unique
   name      String
   email     String  @unique
   isDeleted Boolean @default(false) @map("is_deleted")
@@ -65,7 +66,7 @@ model Order {
 model OrderPayment {
   id    String @id @default(uuid())
   total Float
-
+  slug   String @unique
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId String @map("order_id")
 
@@ -77,7 +78,7 @@ model OrderPayment {
 model ProductsOnOrders {
   order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId String @map("order_id")
-
+  slug String @unique
   product   Product @relation(fields: [productId], references: [id])
   productId String  @map("product_id")
 

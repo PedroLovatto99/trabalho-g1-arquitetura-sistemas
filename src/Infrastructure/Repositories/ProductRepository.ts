@@ -1,5 +1,5 @@
 import { prisma } from "../../Data/Db/Configurations/prisma";
-import type { ProductEntity } from "../../Data/Db/Entities/Product";
+import { ProductEntity } from "../../Data/Db/Entities/Product";
 import type { IProductRepository } from "../Interfaces/IProductRepository";
 
 export class ProductRepository implements IProductRepository {
@@ -111,19 +111,15 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
-  // async findManyByIds(ids: string[]): Promise<ProductEntity[]> {
-  //   const products = await prisma.product.findMany({
-  //     where: {
-  //       id: {
-  //         in: ids,
-  //       },
-  //     },
-  //   });
+  async findManyBySlugs(slugs: string[]): Promise<ProductEntity[]> {
+    const products = await prisma.product.findMany({
+      where: {
+        slug: {
+          in: slugs,
+        },
+      },
+    });
 
-  //   return products.map((product) => ({
-  //     ...product,
-  //     createdAt: product.createdAt || new Date(),
-  //     generateSlug: () => product.slug,
-  //   })) as ProductEntity[];
-  // }
+    return products.map((productData) => new ProductEntity(productData));
+  }
 }

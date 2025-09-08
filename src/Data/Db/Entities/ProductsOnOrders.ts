@@ -12,7 +12,7 @@ export class ProductsOnOrdersEntity {
   order?: OrderEntity;
 
   constructor(props: {
-    orderId: string;
+    orderId?: string;
     productId: string;
     quantity: number;
   }) {

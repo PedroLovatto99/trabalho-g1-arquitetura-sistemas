@@ -5,10 +5,10 @@ export class BaseEntity {
   slug: string;
   createdAt: Date;
 
-  constructor() {
-    this.id = crypto.randomUUID();
-    this.slug = this.generateSlug();
-    this.createdAt = new Date();
+  constructor(props?: { id?: string; slug?: string; createdAt?: Date }) {
+    this.id = props?.id ?? crypto.randomUUID();
+    this.slug = props?.slug ?? this.generateSlug(); 
+    this.createdAt = props?.createdAt ?? new Date();
   }
 
   private generateSlug(): string {

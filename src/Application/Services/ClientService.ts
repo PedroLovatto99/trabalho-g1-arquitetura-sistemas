@@ -1,7 +1,11 @@
+import { ClientEntity } from "../../Data/Db/Entities/ClientEntity";
 import { IClientRepository } from "../../Infrastructure/Interfaces/IClientRepository";
-import { CreateClientDto, ClientResponseDto, UpdateClientDto } from "../Dtos/ClientDto";
+import {
+  CreateClientDto,
+  ClientResponseDto,
+  UpdateClientDto,
+} from "../Dtos/ClientDto";
 import { IClientService } from "../Interfaces/IClientService";
-import type { Client } from "@prisma/client";
 
 export class ClientService implements IClientService {
   constructor(private repo: IClientRepository) {}
@@ -19,32 +23,37 @@ export class ClientService implements IClientService {
       throw new Error("Já existe um cliente com este email.");
     }
 
-    const newClient = await this.repo.create(dto);
+    const newClient = new ClientEntity({ name: dto.name, email: dto.email });
+
+    await this.repo.create(newClient);
     return this.mapToDto(newClient);
   }
 
-  async findAll(): Promise<ClientResponseDto[]> {
-    const clients = await this.repo.findAll();
-    return clients.map(this.mapToDto);
-  }
+  // async findAll(): Promise<ClientResponseDto[]> {
+  //   const clients = await this.repo.findAll();
+  //   return clients.map(this.mapToDto);
+  // }
 
-  async findById(id: string): Promise<ClientResponseDto | null> {
-    const client = await this.repo.findById(id);
-    return client ? this.mapToDto(client) : null;
-  }
+  // async findById(id: string): Promise<ClientResponseDto | null> {
+  //   const client = await this.repo.findById(id);
+  //   return client ? this.mapToDto(client) : null;
+  // }
 
-  async update(id: string, dto: UpdateClientDto): Promise<ClientResponseDto | null> {
-    const updatedClient = await this.repo.update(id, dto);
-    return updatedClient ? this.mapToDto(updatedClient) : null;
-  }
+  // async update(
+  //   id: string,
+  //   dto: UpdateClientDto
+  // ): Promise<ClientResponseDto | null> {
+  //   const updatedClient = await this.repo.update(id, dto);
+  //   return updatedClient ? this.mapToDto(updatedClient) : null;
+  // }
 
-  async delete(id: string): Promise<void> {
-    await this.repo.delete(id);
-  }
+  // async delete(id: string): Promise<void> {
+  //   await this.repo.delete(id);
+  // }
 
-  private mapToDto(client: Client): ClientResponseDto {
+  private mapToDto(client: ClientEntity): ClientResponseDto {
     return {
-      id: client.id,
+      slug: client.slug,
       name: client.name,
       email: client.email,
       isDeleted: client.isDeleted,

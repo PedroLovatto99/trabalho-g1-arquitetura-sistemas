@@ -72,7 +72,7 @@ router.delete("/:slug", async (req: Request, res: Response) => {
 
 router.put("/:slug", async (req: Request, res: Response) => {
     try {
-        const { slug } = req.params;
+        const slug = req.params!;
         const updatedProduct = await productService.update(slug, req.body);
         res.status(200).json(updatedProduct);
     } catch (error: any) {
@@ -82,15 +82,15 @@ router.put("/:slug", async (req: Request, res: Response) => {
 
 
 // Nova rota para ajustar o estoque
-router.patch("/:slug/stock", async (req: Request, res: Response) => {
-    try {
-        const { slug } = req.params;
-        const updatedProduct = await productService.adjustStock(slug, req.body);
-        res.status(200).json(updatedProduct);
-    } catch (error: any) {
-        res.status(400).json({ message: error.message });
-    }
-});
+// router.patch("/:slug/stock", async (req: Request, res: Response) => {
+//     try {
+//         const { slug } = req.params;
+//         const updatedProduct = await productService.adjustStock(slug, req.body);
+//         res.status(200).json(updatedProduct);
+//     } catch (error: any) {
+//         res.status(400).json({ message: error.message });
+//     }
+// });
 
 
 export default router;

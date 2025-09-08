@@ -1,6 +1,7 @@
 //import type { OrderEntity } from "../../Data/Db/Entities/Orders";
 import type { Order, Client, Status, Product, OrderPayment, TypePayment } from "@prisma/client";
-import { CreateOrderDTO, PaymentDTO, UpdateOrderDTO } from "../../Application/Dtos/OrdersDto";
+import { CreateOrderDTO, PaymentDTO } from "../../Application/Dtos/OrdersDto";
+import { OrderEntity } from "../../Data/Db/Entities/Orders";
 
 export type FullOrder = Order & {
   client: Client;
@@ -13,7 +14,7 @@ export type FullOrder = Order & {
 };
 
 export interface IOrderRepository {
-  create(dto: CreateOrderDTO): Promise<FullOrder>;
+  create(dto: OrderEntity): Promise<FullOrder>;
   findBySlug(slug: string): Promise<FullOrder | null>;
   findManyByClientId(clientId: string): Promise<FullOrder[]>;
   updateStatus(slug: string, statusId: number): Promise<FullOrder>;

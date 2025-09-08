@@ -16,4 +16,5 @@ export interface IProductRepository {
   ): Promise<ProductEntity | null>;
   delete(slug: string): Promise<boolean>;
   findManyByIds(ids: string[]): Promise<ProductEntity[]>;
+  findManyBySlugs(slugs: string[]): Promise<ProductEntity[]>;
 }

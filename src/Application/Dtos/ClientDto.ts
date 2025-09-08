@@ -12,7 +12,7 @@ export interface UpdateClientDto {
 
 
 export interface ClientResponseDto {
-  id: string;
+  slug: string;
   name: string;
   email: string;
   isDeleted: boolean;

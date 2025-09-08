@@ -1,7 +1,7 @@
 export interface CreateOrderDTO {
-  clientId: string;
+  clientSlug: string;
   products: {
-    productId: string;
+    productSlug: string;
     quantity: number;
   }[];
 }
