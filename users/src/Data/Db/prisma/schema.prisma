@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Modelo de Clientes
+model Client {
+  id        String  @id @default(uuid())
+  slug      String  @unique
+  name      String
+  email     String  @unique
+  isDeleted Boolean @default(false) @map("is_deleted")
+
+}
+
