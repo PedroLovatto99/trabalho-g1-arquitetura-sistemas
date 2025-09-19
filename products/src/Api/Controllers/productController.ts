@@ -1,108 +1,121 @@
 import { Router, Request, Response } from "express";
-import { ProductRepository } from "../../Infrastructure/Repositories/ProductRepository";
 import { ProductService } from "../../Application/Services/ProductService";
+import { ProductRepository } from "../../Infrastructure/Repositories/ProductRepository";
 
+const productRepository = new ProductRepository();
+const productService = new ProductService(productRepository);
 
-const productService = new ProductService(new ProductRepository());
 const router = Router();
 
-// POST /products
+// POST /api/products
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const created = await productService.create(req.body);
-    res.status(201).json(created);
+    const newProduct = await productService.create(req.body);
+    res.status(201).json(newProduct);
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao criar produto" });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// GET /products
-router.get("/", async (req: Request, res: Response) => {
+// GET /api/products
+router.get("/", async (_req: Request, res: Response) => {
   try {
-    const response = await productService.findAll();
-    res.status(200).json(response);
+    const products = await productService.findAll();
+    res.status(200).json(products);
   } catch (error: any) {
-    res
-      .status(400)
-      .json({ message: error.message ?? "Erro ao buscar produtos" });
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// GET /products/slug
-router.get("/:slug", async (req: Request, res: Response) => {
+// GET /api/products/:id
+router.get("/:id", async (req: Request, res: Response) => {
   try {
-    const slug = req.params.slug!;
-    const response = await productService.findbySlug(slug);
-    res.status(200).json(response);
-  } catch (error: any) {
-    res
-      .status(404)
-      .json({ message: error.message ?? "Erro ao buscar produto" });
-  }
-});
-
-// PUT /products/:slug
-router.put("/:slug", async (req: Request, res: Response) => {
-  try {
-    const slug = req.params.slug;
-    if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
-
-    const updated = await productService.update(slug, req.body);
-    res.status(200).json(updated); 
-  } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao atualizar produto" });
-  }
-});
-
-// DELETE /products/:slug
-router.delete("/:slug", async (req: Request, res: Response) => {
-  try {
-    const slug = req.params.slug;
-    if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
-
-    const response = await productService.delete(slug);
-    if(response === false){
-      return res.status(400).json({ message: "Não foi possível excluir o produto. Ele pode estar associado a pedidos." });
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "ID do produto é necessário" });
     }
+    const product = await productService.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Produto não encontrado" });
+    }
+    res.status(200).json(product);
+  } catch (error: any) {
+    res.status(404).json({ message: error.message });
+  }
+});
+
+// PUT /api/products/:id
+router.put("/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+    const updated = await productService.update(id, req.body);
+    res.status(200).json(updated);
+  } catch (error: any) {
+    res.status(404).json({ message: error.message });
+  }
+});
+
+// DELETE /api/products/:id
+router.delete("/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+    await productService.delete(id);
     res.status(204).send();
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao excluir produto" });
+    res.status(404).json({ message: error.message });
   }
 });
 
-router.put("/:slug", async (req: Request, res: Response) => {
+router.patch("/:id", async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
-
-    // Adicione esta verificação
-    if (!slug) {
-      return res.status(400).json({ message: "Slug is required" });
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "o id do produto é necessário" });
     }
 
-    const updated = await productService.update(slug, req.body);
-    res.status(200).json(updated);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao atualizar produto" });
-  }
-});
+    // O método 'update' já foi projetado para lidar com atualizações parciais.
+    // Ele aceita um objeto com qualquer um dos campos do produto.
+    const updatedProduct = await productService.update(id, req.body);
 
-// Nova rota para ajustar o estoque
-router.patch("/:slug", async (req: Request, res: Response) => {
-  try {
-    const { slug } = req.params;
-
-    // Adicione esta verificação
-    if (!slug) {
-      return res.status(400).json({ message: "Slug is required" });
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Produto não encontrado" });
     }
-    
-    // Supondo que você tenha um método para atualização parcial ou use o mesmo de update
-    const updated = await productService.update(slug, req.body); 
-    res.status(200).json(updated);
+
+    res.status(200).json(updatedProduct);
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao atualizar produto" });
+
+    res.status(400).json({ message: error.message });
   }
 });
+
+
+// PATCH /api/products/:id/stock
+// router.patch("/:id/stock", async (req: Request, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const { quantity } = req.body; // Espera um corpo como: { "quantity": -10 }
+
+//     if (!id) {
+//       return res.status(400).json({ message: "Product ID is required" });
+//     }
+//     if (typeof quantity !== 'number') {
+//       return res.status(400).json({ message: "Quantity must be a number" });
+//     }
+
+//     const updatedProduct = await productService.adjustStock(id, quantity);
+//     res.status(200).json(updatedProduct);
+//   } catch (error: any) {
+//     // Pode ser erro de "Produto não encontrado" ou "Estoque insuficiente"
+//     res.status(400).json({ message: error.message });
+//   }
+// });
+
 
 
 export default router;

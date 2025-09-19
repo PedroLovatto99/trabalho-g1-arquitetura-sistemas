@@ -3,13 +3,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
 
 // Modelo de Produtos
-model Product {
+model product {
   id    String  @id @default(uuid())
   name  String
   price Float
   stock Int
-  slug  String  @unique
 
 }

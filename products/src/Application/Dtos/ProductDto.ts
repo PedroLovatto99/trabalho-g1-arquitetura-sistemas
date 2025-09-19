@@ -1,6 +1,5 @@
-export interface ProductResponseDto {
+export interface ProductDto {
     id: string;
-    slug: string;
     name: string;
     price: number;
     stock: number;

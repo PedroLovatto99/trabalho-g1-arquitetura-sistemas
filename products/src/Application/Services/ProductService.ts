@@ -1,100 +1,54 @@
+import { ProductDto } from "../Dtos/ProductDto"; // Usaremos um DTO mais simples
+import { IProductRepository } from "../../Infrastructure/Interfaces/IProductRepository";
 import { ProductEntity } from "../../Data/Db/Entities/Product";
-import type { IProductRepository } from "../../Infrastructure/Interfaces/IProductRepository";
-import type { ListProductDto } from "../Dtos/ListProductDto";
-import type { ProductResponseDto } from "../Dtos/ProductDto";
-import type { IProductService } from "../Interfaces/IProductService";
+import { IProductService } from "../Interfaces/IProductService";
 
 export class ProductService implements IProductService {
-  constructor(private repo: IProductRepository) {}
+  constructor(private readonly repo: IProductRepository) {}
 
-  async create(dto: ProductResponseDto): Promise<ListProductDto> {
+  async create(dto: ProductDto): Promise<ProductEntity> {
+    // Validações de negócio
     if (!dto.name || dto.name.trim().length < 3)
-      throw new Error("Nome precisa ter mais que  3 caracteres");
-
-    if (dto.price < 0) throw new Error("Preço  não pode ser negativo");
+      throw new Error("Nome precisa ter mais que 3 caracteres");
+    if (dto.price < 0) throw new Error("Preço não pode ser negativo");
     if (dto.stock < 0) throw new Error("Estoque não pode ser negativo");
 
-    const product = new ProductEntity();
-    product.name = dto.name;
-    product.price = dto.price;
-    product.stock = dto.stock;
-
-    const products = await this.repo.create(product);
-
-    const returnDto: ListProductDto = {
-      slug: products.slug,
-      name: products.name,
-      price: products.price,
-      stock: products.stock,
-    };
-    console.log("🚀 ~ ProductService ~ create ~ returnDto:", returnDto)
-
-    return returnDto;
+    // Passa o DTO diretamente para o repositório
+    return this.repo.create(dto);
   }
 
-  async findAll(): Promise<ListProductDto[]> {
-    const products = await this.repo.findMany();
-
-    if (!products || products.length === 0) {
-      return [];
-    }
-
-    return products.map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      name: p.name,
-      price: p.price,
-      stock: p.stock,
-    }));
+  async findAll(): Promise<ProductEntity[]> {
+    return this.repo.findMany();
   }
 
-  async findbySlug(slug: string): Promise<ListProductDto> {
-    const products = await this.repo.findBySlug(slug);
-
-    if (!products) {
+  async findById(id: string): Promise<ProductEntity | null> {
+    const product = await this.repo.findById(id);
+    if (!product) {
       throw new Error("Nenhum produto encontrado");
     }
-
-    return {
-      slug: products.slug,
-      name: products.name,
-      price: products.price,
-      stock: products.stock,
-    };
-  }
-
-  async update(
-    slug: string,
-    dto: Partial<ProductResponseDto>
-  ): Promise<ListProductDto> {
-    const patch: Partial<ProductEntity> = {};
-    if (dto.name !== undefined) patch.name = dto.name;
-    if (dto.price !== undefined) patch.price = dto.price;
-    if (dto.stock !== undefined) patch.stock = dto.stock;
-
-    const updated = await this.repo.updateBySlug(slug, dto);
-    if (!updated) throw new Error("Produto não encontrado");
-
-    return {
-      slug: updated.slug,
-      name: updated.name,
-      price: updated.price,
-      stock: updated.stock,
-    };
+    return product;
   }
 
 
-  async delete(slug: string): Promise<boolean> {
-    const current = await this.repo.findBySlug(slug);
-  
-    if (!current) throw new Error("Produto não encontrado");
-
-    return await this.repo.delete(current.slug);
+  async update(id: string, dto: Partial<ProductDto>): Promise<ProductEntity | null> {
+    const updated = await this.repo.update(id, dto);
+    if (!updated) {
+      throw new Error("Produto não encontrado para atualizar");
+    }
+    return updated;
   }
 
+  async delete(id: string): Promise<boolean> {
+    // Verifica se o produto existe antes de tentar deletar
+    const current = await this.repo.findById(id);
+    if (!current) {
+      throw new Error("Produto não encontrado para deletar");
+    }
+    return this.repo.delete(id);
+  }
 
-async adjustStock(slug: string, quantity: number): Promise<ProductResponseDto | null> {
-    const product = await this.repo.findBySlug(slug);
+  async adjustStock(id: string, quantity: number): Promise<ProductEntity | null> {
+    const product = await this.repo.findById(id);
 
     if (!product) {
       throw new Error("Produto não encontrado");
@@ -105,19 +59,6 @@ async adjustStock(slug: string, quantity: number): Promise<ProductResponseDto | 
       throw new Error("Estoque insuficiente");
     }
 
-    const updatedProduct = await this.repo.updateBySlug(slug, { stock: newStock });
-
-    if (!updatedProduct) {
-        return null;
-    }
-
-    return {
-      id: updatedProduct.id,
-      slug: updatedProduct.slug,
-      name: updatedProduct.name,
-      price: updatedProduct.price,
-      stock: updatedProduct.stock,
-    };
+    return this.repo.update(id, { stock: newStock });
   }
-
 }

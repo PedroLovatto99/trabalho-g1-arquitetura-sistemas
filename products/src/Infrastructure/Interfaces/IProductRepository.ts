@@ -1,19 +1,11 @@
-import type { ProductEntity } from "../../Data/Db/Entities/Product";
-
-export interface FindManyParams {
-  offset?: number;
-  limit?: number;
-  search?: string;
-}
+import { ProductEntity } from "../../Data/Db/Entities/Product";
+import { ProductDto } from "../../Application/Dtos/ProductDto";
 
 export interface IProductRepository {
-  create(p: ProductEntity): Promise<ProductEntity>;
-  findBySlug(slug: string): Promise<ProductEntity | null>;
+  create(data: ProductDto): Promise<ProductEntity>;
   findMany(): Promise<ProductEntity[]>;
-  updateBySlug(
-    slug: string,
-    patch: Partial<ProductEntity>
-  ): Promise<ProductEntity | null>;
-  delete(slug: string): Promise<boolean>;
+  findById(id: string): Promise<ProductEntity | null>;
+  update(id: string, data: Partial<ProductDto>): Promise<ProductEntity | null>;
+  delete(id: string): Promise<boolean>;
   findManyByIds(ids: string[]): Promise<ProductEntity[]>;
 }
