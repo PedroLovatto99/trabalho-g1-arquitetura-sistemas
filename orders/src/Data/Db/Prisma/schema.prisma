@@ -1,0 +1,36 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Tipo customizado para representar um produto dentro do pedido
+type ProductItem {
+  productId   String
+  productName String
+  quantity    Int
+  unitPrice   Float
+}
+
+model Order {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  clientId  String
+  total     Float
+  status    OrderStatus @default(AWAITING_PAYMENT)
+  // Usamos o tipo customizado para criar um array de produtos aninhados
+  products  ProductItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  AWAITING_PAYMENT
+  PAYMENT_PROCESSING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELED
+}

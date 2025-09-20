@@ -1,11 +1,9 @@
-import type { ProductEntity } from "../../Data/Db/Entities/Product";
-import type { ListProductDto } from "../Dtos/ListProductDto";
-import type { ConfirmPaymentDTO, CreateOrderDTO, OrderResponseDTO, OrderDTO } from "../Dtos/OrdersDto";
+import { FullOrder } from "../../Infrastructure/Interfaces/IorderRepository";
+import { CreateOrderDTO, UpdateOrderStatusDTO } from "../Dtos/OrdersDto";
 
 export interface IOrderService {
-  create(dto: OrderDTO): Promise<OrderDTO>;
-  findAll(): Promise<OrderDTO[]>;
-  findbySlug(slug: string): Promise<OrderDTO>;
-  findOrdersByClient(clientId: string): Promise<OrderResponseDTO[]>;
-  confirmPayment(slug: string, dto: ConfirmPaymentDTO): Promise<OrderResponseDTO>;
+  create(dto: CreateOrderDTO): Promise<FullOrder>;
+  findById(id: string): Promise<FullOrder | null>;
+  findByClient(clientId: string): Promise<FullOrder[]>;
+  updateStatus(id: string, dto: UpdateOrderStatusDTO): Promise<FullOrder>;
 }

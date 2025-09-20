@@ -1,68 +1,69 @@
 import { Router, Request, Response } from "express";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepository } from "../../Infrastructure/Repositories/OrderRepository";
+import { ProductApi } from "../../Infrastructure/communications/api_products";
 
-const orderService = new OrderService(new OrderRepository());
+// Injeção de Dependência
+const orderRepository = new OrderRepository();
+const productApi = new ProductApi();
+const orderService = new OrderService(orderRepository, productApi);
+
 const router = Router();
 
-// POST /orders
+// POST /api/orders
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const created = await orderService.create(req.body);
-    res.status(201).json(created);
+    const newOrder = await orderService.create(req.body);
+    res.status(201).json(newOrder);
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao criar pedido" });
+    res.status(400).json({ message: error.message });
   }
 });
 
-// GET /orders
+// GET /api/orders?clientId=...
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const response = await orderService.findAll();
-    res.status(200).json(response);
+    const { clientId } = req.query;
+    if (!clientId || typeof clientId !== 'string') {
+      return res.status(400).json({ message: "O parâmetro 'clientId' é obrigatório." });
+    }
+    const orders = await orderService.findByClient(clientId);
+    res.status(200).json(orders);
   } catch (error: any) {
-    res
-      .status(400)
-      .json({ message: error.message ?? "Erro ao buscar pedidos" });
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
-// GET /orders/slug
-router.get("/:slug", async (req: Request, res: Response) => {
+// GET /api/orders/:id
+router.get("/:id", async (req: Request, res: Response) => {
   try {
-    const slug = req.params.slug!;
-    const response = await orderService.findbySlug(slug);
-    res.status(200).json(response);
+    const { id } = req.params;
+    // Adicionada verificação para garantir que o ID existe
+    if (!id) {
+      return res.status(400).json({ message: "O ID do pedido é obrigatório na URL." });
+    }
+    const order = await orderService.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Pedido não encontrado." });
+    }
+    res.status(200).json(order);
   } catch (error: any) {
-    res
-      .status(404)
-      .json({ message: error.message ?? "Erro ao buscar o pedido" });
+    res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
 
-// PUT /orders/:slug
-router.put("/:slug", async (req: Request, res: Response) => {
+// PATCH /api/orders/:id/status
+router.patch("/:id/status", async (req: Request, res: Response) => {
   try {
-    const slug = req.params.slug;
-    if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
-
-    const updated = await orderService.update(slug, req.body);
-    res.status(200).json(updated); 
+    const { id } = req.params;
+    // Adicionada verificação para garantir que o ID existe
+    if (!id) {
+      return res.status(400).json({ message: "O ID do pedido é obrigatório na URL." });
+    }
+    const updatedOrder = await orderService.updateStatus(id, req.body);
+    res.status(200).json(updatedOrder);
   } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao atualizar pedido" });
-  }
-});
-
-//DELETE /products/:slug
-router.delete("/:slug", async (req: Request, res: Response) => {
-  try {
-    const slug = req.params.slug;
-    if (!slug) return res.status(400).json({ message: "Slug é obrigatório" });
-
-    await orderService.delete(slug);
-    res.status(204).send();
-  } catch (error: any) {
-    res.status(400).json({ message: error.message ?? "Erro ao excluir produto" });
+    res.status(400).json({ message: error.message });
   }
 });
 

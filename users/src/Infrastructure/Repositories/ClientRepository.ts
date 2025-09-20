@@ -9,14 +9,13 @@ export class ClientRepository implements IClientRepository {
   private mapToEntity(prismaClient: PrismaClient): ClientEntity {
     const entity = new ClientEntity();
     entity.id = prismaClient.id;
-    entity.slug = prismaClient.slug;
     entity.name = prismaClient.name;
     entity.email = prismaClient.email;
     entity.isDeleted = prismaClient.isDeleted;
     return entity;
   }
 
-  async create(data: { name: string; email: string; slug: string }): Promise<ClientEntity> {
+  async create(data: { name: string; email: string; }): Promise<ClientEntity> {
     const newClient = await prisma.client.create({ data });
     return this.mapToEntity(newClient);
   }

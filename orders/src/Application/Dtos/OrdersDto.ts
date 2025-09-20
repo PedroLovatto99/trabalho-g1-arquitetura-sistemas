@@ -1,33 +1,18 @@
+import { OrderStatus } from "@prisma/client";
+
+// DTO para um produto ao criar um pedido
+export interface CreateOrderProductDto {
+  productId: string;
+  quantity: number;
+}
+
+// DTO para criar um novo pedido
 export interface CreateOrderDTO {
   clientId: string;
-  products: {
-    productId: string;
-    quantity: number;
-  }[];
+  products: CreateOrderProductDto[];
 }
 
-export interface PaymentDTO {
-  typePaymentId: number;
-  total: number;
-}
-
-export interface ConfirmPaymentDTO {
-  payments: PaymentDTO[];
-}
-
-export interface OrderResponseDTO {
-    id: string;
-    slug: string;
-    createdAt: Date;
-    status: { name: string };
-    client: { id: string; name: string };
-    products: {
-        name: string;
-        price: number;
-        quantity: number;
-    }[];
-    payments: {
-        total: number;
-        type: string;
-    }[];
+// DTO para atualizar o status de um pedido
+export interface UpdateOrderStatusDTO {
+  status: OrderStatus;
 }
