@@ -7,81 +7,29 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Modelo de Clientes
-model Client {
-  id        String  @id @default(uuid())
-  name      String
-  email     String  @unique
-  isDeleted Boolean @default(false) @map("is_deleted")
 
-  orders Order[]
-}
 
-// Modelo de Produtos
-model Product {
-  id    String  @id @default(uuid())
-  name  String
-  price Float
-  stock Int
-  slug  String  @unique
-
-  orders ProductsOnOrders[]
-}
-
-// Modelo de Status (dados fixos, preenchidos via seed)
-model Status {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  orders Order[]
-}
-
-// Modelo de Tipos de Pagamento (dados fixos, preenchidos via seed)
 model TypePayment {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id        String    @id @default(uuid())
+  name      String    @unique
+  payments  Payment[]
 
-  orderPayments OrderPayment[]
+  @@map("type_payments")
 }
 
-// Modelo de Pedidos
-model Order {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  slug      String   @unique
-  isDeleted Boolean  @default(false) @map("is_deleted")
+model Payment {
+  id              String      @id @default(uuid())
+  orderId         String
 
-  client    Client @relation(fields: [clientId], references: [id])
-  clientId  String @map("client_id")
+  typePaymentId   String      @map("type_payment_id")
+  typePayment     TypePayment @relation(fields: [typePaymentId], references: [id], onDelete: Restrict)
+  amountPaid      Decimal     @db.Decimal(12, 2) @map("amount_paid")
 
-  status    Status @relation(fields: [statusId], references: [id])
-  statusId  Int    @map("status_id")
+  paidAt          DateTime?   @map("paid_at")
+  createdAt       DateTime    @default(now())    @map("created_at")
+  updatedAt       DateTime    @updatedAt         @map("updated_at")
 
-  products ProductsOnOrders[]
-  payments OrderPayment[]
-}
-
-// Modelo de Pagamentos do Pedido
-model OrderPayment {
-  id    String @id @default(uuid())
-  total Float
-
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId String @map("order_id")
-
-  typePayment   TypePayment @relation(fields: [typePaymentId], references: [id])
-  typePaymentId Int         @map("type_payment_id")
-}
-
-// Tabela de junção para Pedidos e Produtos
-model ProductsOnOrders {
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId String @map("order_id")
-
-  product   Product @relation(fields: [productId], references: [id])
-  productId String  @map("product_id")
-
-  quantity Int
-
-  @@id([orderId, productId])
+  @@index([typePaymentId])
+  @@index([orderId])
+  @@map("payments")
 }
