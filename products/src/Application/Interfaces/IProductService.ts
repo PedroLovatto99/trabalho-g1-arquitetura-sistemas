@@ -12,5 +12,8 @@ export interface IProductService {
 
   delete(id: string): Promise<boolean>;
 
+  findAvailable(): Promise<ProductDto[]>; 
+
   adjustStock(id: string, quantity: number): Promise<ProductEntity | null>;
+
 }

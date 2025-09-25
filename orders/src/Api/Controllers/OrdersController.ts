@@ -1,12 +1,10 @@
 import { Router, Request, Response } from "express";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepository } from "../../Infrastructure/Repositories/OrderRepository";
-import { ProductApi } from "../../Infrastructure/communications/api_products";
 
 // Injeção de Dependência
 const orderRepository = new OrderRepository();
-const productApi = new ProductApi();
-const orderService = new OrderService(orderRepository, productApi);
+const orderService = new OrderService(orderRepository);
 
 const router = Router();
 

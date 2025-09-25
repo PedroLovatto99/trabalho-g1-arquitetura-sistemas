@@ -47,6 +47,10 @@ export class ProductService implements IProductService {
     return this.repo.delete(id);
   }
 
+  async findAvailable(): Promise<ProductDto[]> {
+    return this.repo.findAvailable();
+  }
+
   async adjustStock(id: string, quantity: number): Promise<ProductEntity | null> {
     const product = await this.repo.findById(id);
 

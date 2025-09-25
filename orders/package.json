@@ -150,6 +150,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev src/index.ts"
   },
+    "prisma": {
+    "schema": "src/Data/Db/Prisma/schema.prisma"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

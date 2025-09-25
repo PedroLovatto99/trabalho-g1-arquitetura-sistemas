@@ -1,12 +1,12 @@
 import express from "express";
-import productRouter from "./Api/Controllers/productController";
+import notificationRouter from "./Api/Controllers/NotificationController";
 
 const app = express();
 app.use(express.json());
 
-app.use("/api/products", productRouter);
+app.use("/api/notification", notificationRouter);
 
-const port = process.env.PORT || 3004; 
+const port = 3007; 
 app.listen(port, () => {
   console.log(`Products microservice running on http://localhost:${port}`);
 });

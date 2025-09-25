@@ -67,7 +67,22 @@ export class ProductRepository implements IProductRepository {
     });
     return products.map(this.mapToEntity);
   }
+
+  async findAvailable(): Promise<ProductEntity[]> {
+    const products = await prisma.product.findMany({
+      where: {
+        stock: {
+          gt: 0, // gt = "greater than"
+        },
+      },
+    });
+    return products.map(this.mapToEntity);
+  }
+
+
 }
+
+
 
   // async findManyByIds(ids: string[]): Promise<ProductEntity[]> {
   //   const products = await prisma.product.findMany({

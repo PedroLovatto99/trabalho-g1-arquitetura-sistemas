@@ -6,6 +6,6 @@ app.use(express.json());
 
 app.use("/api/payments", paymentsRouter);
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+app.listen(3006, () => {
+  console.log("Server running on http://localhost:3006");
 });

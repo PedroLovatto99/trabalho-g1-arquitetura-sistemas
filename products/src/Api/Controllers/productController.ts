@@ -18,8 +18,16 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // GET /api/products
-router.get("/", async (_req: Request, res: Response) => {
+// Suporta buscar apenas em estoque: ?inStock=true
+router.get("/", async (req: Request, res: Response) => {
   try {
+    const { ids, inStock } = req.query;
+
+    if (inStock === 'true') {
+      const products = await productService.findAvailable();
+      return res.status(200).json(products);
+    }
+
     const products = await productService.findAll();
     res.status(200).json(products);
   } catch (error: any) {
@@ -72,6 +80,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/products/:id
 router.patch("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -95,26 +104,28 @@ router.patch("/:id", async (req: Request, res: Response) => {
 });
 
 
-// PATCH /api/products/:id/stock
-// router.patch("/:id/stock", async (req: Request, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//     const { quantity } = req.body; // Espera um corpo como: { "quantity": -10 }
+//PATCH /api/products/:id/stock
 
-//     if (!id) {
-//       return res.status(400).json({ message: "Product ID is required" });
-//     }
-//     if (typeof quantity !== 'number') {
-//       return res.status(400).json({ message: "Quantity must be a number" });
-//     }
+router.patch("/:id/stock", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body; // Espera um corpo como: { "quantity": -10 }
 
-//     const updatedProduct = await productService.adjustStock(id, quantity);
-//     res.status(200).json(updatedProduct);
-//   } catch (error: any) {
-//     // Pode ser erro de "Produto não encontrado" ou "Estoque insuficiente"
-//     res.status(400).json({ message: error.message });
-//   }
-// });
+    if (!id) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+    if (typeof quantity !== 'number') {
+      return res.status(400).json({ message: "Quantity must be a number" });
+    }
+
+    const updatedProduct = await productService.adjustStock(id, quantity);
+    res.status(200).json(updatedProduct);
+  } catch (error: any) {
+    // Pode ser erro de "Produto não encontrado" ou "Estoque insuficiente"
+    res.status(400).json({ message: error.message });
+  }
+});
+
 
 
 

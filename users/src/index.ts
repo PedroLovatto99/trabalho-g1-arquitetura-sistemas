@@ -6,7 +6,7 @@ app.use(express.json());
 
 app.use("/api/clients", clientRouter);
 
-const port = process.env.PORT || 3003;
+const port = process.env.PORT || 3005;
 app.listen(port, () => {
   console.log(`Clients microservice running on http://localhost:${port}`);
 });
