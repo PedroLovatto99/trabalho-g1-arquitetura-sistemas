@@ -1,36 +1,35 @@
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  url      = env("MONGO_URI")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-// Tipo customizado para representar um produto dentro do pedido
+// Enum para os status do pedido (melhor prática)
+enum OrderStatus {
+  AWAITING_PAYMENT
+  PAID
+  PAYMENT_FAILED
+  CANCELED
+}
+
+// Tipo para os produtos embutidos no pedido
 type ProductItem {
-  productId   String
+  productId   String  
   productName String
   quantity    Int
   unitPrice   Float
 }
 
+// Modelo de Pedido (agora sem @relation)
 model Order {
   id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  clientId  String
   total     Float
   status    OrderStatus @default(AWAITING_PAYMENT)
-  // Usamos o tipo customizado para criar um array de produtos aninhados
   products  ProductItem[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-}
-
-enum OrderStatus {
-  AWAITING_PAYMENT
-  PAYMENT_PROCESSING
-  CONFIRMED
-  SHIPPED
-  DELIVERED
-  CANCELED
+  clientId  String     
 }

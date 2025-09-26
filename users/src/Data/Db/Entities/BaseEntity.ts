@@ -8,8 +8,4 @@ export class BaseEntity {
     this.id = crypto.randomUUID();
     this.createdAt = new Date();
   }
-
-  private generateSlug(): string {
-    return crypto.randomBytes(10).toString("hex");
-  }
 }

@@ -7,7 +7,7 @@ const productService = new ProductService(productRepository);
 
 const router = Router();
 
-// POST /api/products
+// POST /api/products CRIAR
 router.post("/", async (req: Request, res: Response) => {
   try {
     const newProduct = await productService.create(req.body);
@@ -17,7 +17,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/products
+// GET /api/products LISTAR
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const products = await productService.findAll();
@@ -27,7 +27,7 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/products/:id
+// GET /api/products/:id BUSCAR POR ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -44,7 +44,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/products/:id
+// PUT /api/products/:id ATUALIZAR
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -58,7 +58,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/products/:id
+// DELETE /api/products/:id DELETAR
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

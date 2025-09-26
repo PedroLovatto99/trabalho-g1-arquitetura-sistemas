@@ -1,5 +1,5 @@
 import { prisma } from "../../Data/Db/Configurations/prisma";
-import { Client as PrismaClient } from "@prisma/client";
+import { client as PrismaClient } from "@prisma/client";
 import { IClientRepository } from "../Interfaces/IClientRepository";
 import { ClientEntity } from "../../Data/Db/Entities/ClientEntity";
 import { UpdateClientDto } from "../../Application/Dtos/ClientDto";

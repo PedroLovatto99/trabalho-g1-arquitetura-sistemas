@@ -8,12 +8,10 @@ generator client {
 }
 
 // Modelo de Clientes
-model Client {
+model client {
   id        String  @id @default(uuid())
-  slug      String  @unique
   name      String
   email     String  @unique
   isDeleted Boolean @default(false) @map("is_deleted")
-
 }
 

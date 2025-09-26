@@ -7,9 +7,7 @@ export class ClientService {
   constructor(private readonly clientRepository: IClientRepository) {}
 
   async create(dto: CreateClientDto): Promise<ClientEntity> {
-    const slug = slugify(dto.name, { lower: true, strict: true });
-    const dataToSave = { ...dto, slug };
-    return this.clientRepository.create(dataToSave);
+    return this.clientRepository.create(dto);
   }
 
   async findAll(): Promise<ClientEntity[]> {

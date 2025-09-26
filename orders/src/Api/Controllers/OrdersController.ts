@@ -1,16 +1,19 @@
 import { Router, Request, Response } from "express";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepository } from "../../Infrastructure/Repositories/OrderRepository";
-import { ProductApi } from "../../Infrastructure/communications/api_products";
+import { ProductServiceHttpClient } from "../../External/api_products";
+import { PaymentServiceHttpClient } from "../../External/api_payments";
+
 
 // Injeção de Dependência
 const orderRepository = new OrderRepository();
-const productApi = new ProductApi();
-const orderService = new OrderService(orderRepository, productApi);
+const productApi = new ProductServiceHttpClient();
+const paymentApi = new PaymentServiceHttpClient(); // Crie uma instância do cliente HTTP do serviço de pagamentos, se necessário
+const orderService = new OrderService(orderRepository, productApi,paymentApi);
 
 const router = Router();
 
-// POST /api/orders
+// POST /api/orders CRIAR
 router.post("/", async (req: Request, res: Response) => {
   try {
     const newOrder = await orderService.create(req.body);

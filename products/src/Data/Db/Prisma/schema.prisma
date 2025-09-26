@@ -13,5 +13,4 @@ model product {
   name  String
   price Float
   stock Int
-
 }

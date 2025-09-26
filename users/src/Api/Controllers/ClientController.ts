@@ -7,7 +7,7 @@ const clientService = new ClientService(clientRepository);
 
 const router = Router();
 
-// POST /api/clients
+// POST /api/clients CRIAR
 router.post("/", async (req: Request, res: Response) => {
   try {
     const clientDto = req.body;
@@ -18,7 +18,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/clients
+// GET /api/clients LISTAR
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const clients = await clientService.findAll();
@@ -28,7 +28,7 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// GET /api/clients/:id
+// GET /api/clients/:id BUSCAR POR ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -50,7 +50,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/clients/:id
+// PUT /api/clients/:id ATUALIZAR
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -73,7 +73,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// DELETE /api/clients/:id
+// DELETE /api/clients/:id DELETAR
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
