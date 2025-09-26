@@ -1,5 +1,5 @@
 # ---- 1. Build Stage ----
-FROM node:18-alpine AS build
+FROM node:18-alpine3.18 AS build
 
 WORKDIR /usr/src/app
 
@@ -17,9 +17,10 @@ COPY . .
 RUN npm run build
 
 # ---- 2. Production Stage ----
-FROM node:18-alpine
+FROM node:18-alpine3.18
 
 WORKDIR /usr/src/app
+
 
 COPY package*.json ./
 
@@ -33,4 +34,4 @@ COPY --from=build /usr/src/app/dist ./dist
 EXPOSE 3000
 
 # Comando para iniciar a aplicação
-CMD [ "node", "dist/src/index.js" ]
+CMD [ "npm", "start" ]

@@ -1,0 +1,12 @@
+# Ignorar dependências, pois serão instaladas dentro do container
+node_modules
+
+# EXCEÇÃO: Não ignorar os binários do Prisma que já baixamos localmente
+!node_modules/.prisma/client
+
+# Ignorar arquivos de log e ambiente local
+npm-debug.log
+.env
+
+# Ignorar a pasta de código compilado, se existir localmente
+dist

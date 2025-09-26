@@ -1,14 +1,12 @@
 import { CreateClientDto, UpdateClientDto } from "../Dtos/ClientDto";
 import { IClientRepository } from "../../Infrastructure/Interfaces/IClientRepository";
 import { ClientEntity } from "../../Data/Db/Entities/ClientEntity";
-import slugify from "slugify";
 
 export class ClientService { 
   constructor(private readonly clientRepository: IClientRepository) {}
 
   async create(dto: CreateClientDto): Promise<ClientEntity> {
-    const slug = slugify(dto.name, { lower: true, strict: true });
-    const dataToSave = { ...dto, slug };
+    const dataToSave = { ...dto };
     return this.clientRepository.create(dataToSave);
   }
 

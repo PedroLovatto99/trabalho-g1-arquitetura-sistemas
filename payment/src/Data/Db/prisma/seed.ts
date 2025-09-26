@@ -16,9 +16,9 @@ async function main() {
 
   await prisma.typePayment.createMany({
     data: [
-      { id: 1, name: 'PIX' },
-      { id: 2, name: 'CARTAO DE CREDITO' },
-      { id: 3, name: 'BOLETO' },
+      { id: "1", name: 'PIX' },
+      { id: "2", name: 'CARTAO DE CREDITO' },
+      { id: "3", name: 'BOLETO' },
     ],
     skipDuplicates: true,
   });

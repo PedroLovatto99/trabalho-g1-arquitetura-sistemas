@@ -1,5 +1,5 @@
 # ---- 1. Build Stage ----
-FROM node:18-alpine AS build
+FROM node:18-alpine3.18 AS build
 
 WORKDIR /usr/src/app
 
@@ -20,14 +20,18 @@ RUN npx prisma generate
 RUN npm run build
 
 # ---- 2. Production Stage ----
-FROM node:18-alpine
+FROM node:18-alpine3.18
 
 WORKDIR /usr/src/app
+
+RUN apk update && apk add openssl1.1-compat
 
 COPY package*.json ./
 
 # Instala APENAS as dependências de produção
 RUN npm ci --only=production
+
+COPY --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 # Copia o código JavaScript compilado da etapa de 'build'
 COPY --from=build /usr/src/app/dist ./dist
@@ -39,4 +43,4 @@ COPY --from=build /usr/src/app/src/Data/Db/Prisma/schema.prisma ./src/Data/Db/Pr
 EXPOSE 3000
 
 # Comando para iniciar a aplicação
-CMD [ "node", "dist/src/index.js" ]
+CMD [ "npm", "start" ]

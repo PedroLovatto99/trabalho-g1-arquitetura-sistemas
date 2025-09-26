@@ -5,8 +5,14 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
+model Status {
+  id       Int       @id
+  name     String    @unique
+  payments Payment[]
+}
 
 
 model TypePayment {
@@ -20,7 +26,8 @@ model TypePayment {
 model Payment {
   id              String      @id @default(uuid())
   orderId         String
-
+  statusId      Int
+  status        Status      @relation(fields: [statusId], references: [id])
   typePaymentId   String      @map("type_payment_id")
   typePayment     TypePayment @relation(fields: [typePaymentId], references: [id], onDelete: Restrict)
   amountPaid      Decimal     @db.Decimal(12, 2) @map("amount_paid")

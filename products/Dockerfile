@@ -1,4 +1,4 @@
-FROM node:18-alpine AS build
+FROM node:18-alpine3.18 AS build
 
 # Define o diretório de trabalho dentro do container
 WORKDIR /usr/src/app
@@ -21,15 +21,20 @@ RUN npm run build
 
 # ---- 2. Production Stage ----
 # Começamos uma nova imagem limpa para a versão final
-FROM node:18-alpine
+FROM node:18-alpine3.18
 
 WORKDIR /usr/src/app
+
+RUN apk update && apk add openssl1.1-compat
 
 # Copia os arquivos de dependência novamente
 COPY package*.json ./
 
 # Instala APENAS as dependências de produção
 RUN npm ci --only=production
+
+
+COPY --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 # Copia o código JavaScript compilado da etapa de 'build'
 # Isso assume que seu tsconfig.json gera os arquivos em uma pasta "dist"
@@ -43,4 +48,4 @@ EXPOSE 3000
 
 # O comando para iniciar a aplicação
 # O caminho exato pode variar dependendo da sua configuração no tsconfig.json
-CMD [ "node", "dist/src/index.js" ]
+CMD [ "npm", "start" ]

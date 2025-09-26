@@ -15,6 +15,7 @@ export class PaymentRepository implements IPaymentRepository {
       data: {
         orderId: data.orderId,
         typePaymentId: data.typePaymentId,
+        statusId: 1, // <-- ADICIONE ESTA LINHA (Status: AGUARDANDO PAGAMENTO)
         amountPaid: new Prisma.Decimal(data.amountPaid),
         paidAt: data.paidAt ?? null,
       },
