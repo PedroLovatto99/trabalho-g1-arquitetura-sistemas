@@ -17,3 +17,8 @@ export const ordersApi = axios.create({
   ...commonConfig,
   baseURL: process.env.ORDER_API_URL ||  "http://localhost:3002/api/payments",
 });
+
+export const notificationAPI = axios.create({
+  ...commonConfig,
+  baseURL: process.env.NOTIFICATION_API_URL ||  "http://localhost:3007/api/notification",
+});

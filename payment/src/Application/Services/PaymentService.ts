@@ -4,6 +4,7 @@ import { IProductApi } from "../../External/apiProducts";
 import { IPaymentRepository } from "../../Infrastucture/Interfaces/IPaymentRepository";
 import { CreatePaymentDTO, UpdatePaymentDTO } from "../Dtos/PaymentDtos";
 import { IPaymentService } from "../Interfaces/IPaymentService";
+import { notificationAPI } from "../../External/api";
 
 export class PaymentService implements IPaymentService {
   constructor(
@@ -54,6 +55,8 @@ export class PaymentService implements IPaymentService {
       typePaymentId: newStatus,
       paidAt: approved ? new Date() : null,
     });
+
+    await notificationAPI.get("/");
 
     return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" };
   }
