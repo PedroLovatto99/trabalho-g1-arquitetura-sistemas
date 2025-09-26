@@ -60,6 +60,8 @@ services:
       - "3003:3000"
     environment:
       - DATABASE_URL=mongodb://orders-db:27017/orders_db
+      - PRODUCTS_API_URL=http://localhost:3001/api/products
+      - PAYMENTS_API_URL=http://localhost:3000/api/payments
     depends_on:
       - orders-db
 

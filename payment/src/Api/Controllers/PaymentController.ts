@@ -20,6 +20,17 @@ router.post("/", async (req: Request, res: Response) => {
   }
 })
 
+// POST Processar POST 
+router.post("/process", async (req: Request, res: Response) => {
+  try {
+    const dto = req.body as CreatePaymentDTO
+    const created = await paymentService.create(dto)
+    res.status(201).json(created)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+})
+
 // GET /api/payments
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -108,16 +119,16 @@ router.delete("/:id", async (req: Request, res: Response) => {
 })
 
 // GET /api/payments/order/:orderId/balance
-router.get("/order/:orderId/balance", async (req: Request, res: Response) => {
-  try {
-    const { orderId } = req.params
-    if (!orderId) return res.status(400).json({ message: "orderId é obrigatório" })
+// router.patch("/:orderId", async (req: Request, res: Response) => {
+//   try {
+//     const { orderId } = req.params
+//     if (!orderId) return res.status(400).json({ message: "orderId é obrigatório" })
 
-    const total = await paymentService.getOrderBalance(orderId)
-    res.status(200).json({ orderId, total })
-  } catch (error: any) {
-    res.status(400).json({ message: error.message })
-  }
-})
+//     const total = await paymentService.updateStock(orderId)
+//     res.status(200).json({ orderId, total })
+//   } catch (error: any) {
+//     res.status(400).json({ message: error.message })
+//   }
+// })
 
 export default router

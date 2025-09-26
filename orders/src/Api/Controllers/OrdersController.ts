@@ -1,10 +1,14 @@
 import { Router, Request, Response } from "express";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepository } from "../../Infrastructure/Repositories/OrderRepository";
+import { PaymentServiceHttpClient } from "../../External/apiPayments";
+import { ProductServiceHttpClient } from "../../External/apiProducts";
 
 // Injeção de Dependência
 const orderRepository = new OrderRepository();
-const orderService = new OrderService(orderRepository);
+const paymentService = new PaymentServiceHttpClient();
+const productService = new ProductServiceHttpClient();
+const orderService = new OrderService(orderRepository, paymentService, productService);
 
 const router = Router();
 
