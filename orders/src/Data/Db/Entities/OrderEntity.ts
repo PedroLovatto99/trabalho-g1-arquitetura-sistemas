@@ -1,51 +1,73 @@
-// src/Domain/Models/OrderModel.ts
+// Data/Db/Entities/OrderEntity.ts
+import { Schema, model, Types } from "mongoose";
 
-import mongoose, { Schema, Document } from 'mongoose';
-import { OrderStatus } from "@prisma/client"; // Você pode manter este enum ou criar um novo
-
-// Interface para tipagem forte do item de produto
 export interface IProductItem {
-    productId: string;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
 }
 
-// Interface para tipagem forte do documento de Pedido
-export interface IOrder extends Document {
-    clientId: string;
-    total: number;
-    status: OrderStatus;
-    products: IProductItem[];
-    createdAt: Date;
-    updatedAt: Date;
+export type OrderStatus =
+  | "AWAITING_PAYMENT"
+  | "PAYMENT_PROCESSING"
+  | "CONFIRMED"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELED";
+
+export interface IOrder {
+  clientId: string;
+  total: number;
+  status: OrderStatus;
+  products: IProductItem[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// Sub-schema para os produtos dentro do pedido
-const ProductItemSchema: Schema = new Schema({
-    productId: { type: String, required: true },
-    productName: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    unitPrice: { type: Number, required: true },
-}, { _id: false }); // _id: false para não criar IDs para os subdocumentos
-
-// Schema principal do Pedido
-const OrderSchema: Schema = new Schema({
-    clientId: { type: String, required: true, index: true },
+const OrderSchema = new Schema<IOrder>(
+  {
+    clientId: { type: String, required: true },
     total: { type: Number, required: true },
-    status: { type: String, enum: Object.values(OrderStatus), required: true },
-    products: [ProductItemSchema],
-},{
-    timestamps: true,
-    versionKey: false,
-    // ADICIONE ESTA CONFIGURAÇÃO:
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+    status: {
+      type: String,
+      enum: [
+        "AWAITING_PAYMENT",
+        "PAYMENT_PROCESSING",
+        "CONFIRMED",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELED",
+      ],
+      default: "AWAITING_PAYMENT",
+    },
+    products: [
+      {
+        productId: String,
+        productName: String,
+        quantity: Number,
+        unitPrice: Number,
+      },
+    ],
+  },
+  { timestamps: true, versionKey: false , toJSON: { virtuals: true },
+    toObject: { virtuals: true }}
+);
 
+// virtual id (string)
 OrderSchema.virtual('id').get(function() {
     return this._id.toHexString();
 });
 
-// Exporta o model
-export default mongoose.model<IOrder>('Order', OrderSchema);
+// normaliza saída
+const transform = (_: any, ret: any) => {
+  ret.id = ret._id.toString();
+  delete ret._id;
+  delete ret.__v;
+  return ret;
+};
+OrderSchema.set("toJSON", { virtuals: true, transform });
+OrderSchema.set("toObject", { virtuals: true, transform });
+
+const OrderModel = model<IOrder>("Order", OrderSchema);
+export default OrderModel;

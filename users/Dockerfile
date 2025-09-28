@@ -1,45 +1,50 @@
-# ---- 1. Build Stage ----
-FROM node:18-alpine3.18 AS build
-
+# ---- 1) BUILD ----
+FROM node:20-alpine AS build
 WORKDIR /usr/src/app
 
-# Copia os arquivos de dependência
-COPY package*.json ./
+# Evita prompts interativos em CI
+ENV CI=true
 
-# Instala TODAS as dependências para compilar o projeto
-RUN npm install
+# 1) Copia mínimos para cache eficiente
+COPY package*.json tsconfig*.json ./
+# 2) Copia o schema já agora para gerar o Client usado no build TS
+COPY src/Data/Db/prisma/schema.prisma ./src/Data/Db/prisma/schema.prisma
 
-# Copia o restante do código-fonte
+# Instala TODAS as dependências (inclui dev) para compilar
+RUN npm ci
+
+# Gera Prisma Client (tipos para o build)
+RUN npx prisma generate --schema=./src/Data/Db/prisma/schema.prisma
+
+# Copia o restante do código
 COPY . .
 
-# Gera o cliente Prisma
-RUN npx prisma generate
-
-# Compila o código TypeScript para JavaScript
+# Compila TS -> JS
 RUN npm run build
 
-# ---- 2. Production Stage ----
-FROM node:18-alpine3.18
-
+# ---- 2) RUNTIME ----
+FROM node:20-alpine AS runtime
 WORKDIR /usr/src/app
 
-RUN apk update && apk add openssl1.1-compat
+# Variáveis padrão (ajuste conforme necessário)
+ENV NODE_ENV=production \
+    PORT=3000 \
+    PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
 
+# Init leve para sinais/defuncts
+RUN apk add --no-cache tini
+
+# Apenas dependências de produção
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Instala APENAS as dependências de produção
-RUN npm ci --only=production
-
-COPY --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
-
-# Copia o código JavaScript compilado da etapa de 'build'
+# Artefatos do build + schema
 COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/src/Data/Db/prisma ./src/Data/Db/prisma
 
-# Copia o schema.prisma, necessário em tempo de execução
-COPY --from=build /usr/src/app/src/Data/Db/prisma/schema.prisma ./src/Data/Db/prisma/schema.prisma
-
-# Expõe a porta da aplicação
+# Porta da aplicação
 EXPOSE 3000
 
-# Comando para iniciar a aplicação
-CMD [ "npm", "start" ]
+# Sem entrypoint.sh: roda generate + migrate deploy e sobe a app
+ENTRYPOINT ["/sbin/tini","--"]
+CMD ["sh","-c","npx prisma generate --schema=$PRISMA_SCHEMA_PATH && npx prisma migrate deploy --schema=$PRISMA_SCHEMA_PATH && npm start"]

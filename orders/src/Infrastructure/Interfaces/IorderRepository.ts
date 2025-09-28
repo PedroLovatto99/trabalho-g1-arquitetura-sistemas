@@ -2,9 +2,7 @@ import { Order, OrderStatus, ProductItem } from "@prisma/client";
 import { CreateOrderDTO } from "../../Application/Dtos/OrdersDto";
 
 // O tipo 'Order' gerado pelo Prisma já contém o array de produtos
-export type FullOrder = Order & {
-  paymentId: string;
-};
+export type FullOrder = Order & { paymentId?: string | null };
 
 
 export interface IOrderRepository {

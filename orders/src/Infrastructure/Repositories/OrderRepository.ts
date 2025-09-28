@@ -17,24 +17,24 @@ export class OrderRepository implements IOrderRepository {
       status: 'AWAITING_PAYMENT',
       products: productItems,
     });
-    return newOrder.toObject(); // .toObject() converte o documento Mongoose para um objeto JS puro
+    //@ts-ignore
+      return newOrder.toObject(); ; // .toObject() converte o documento Mongoose para um objeto JS puro
   }
 
   async findById(id: string): Promise<FullOrder | null> {
-    // Mongoose.findById é o equivalente direto do findUnique do Prisma
+    //@ts-ignore
     return OrderModel.findById(id).lean(); // .lean() retorna um objeto JS puro, mais rápido
   }
 
   async findByClientId(clientId: string): Promise<FullOrder[]> {
-    // Mongoose.find para buscar múltiplos documentos
+    //@ts-ignore
     return OrderModel.find({ clientId })
-      .sort({ createdAt: -1 }) // .sort com -1 para ordem decrescente
+      .sort({ createdAt: -1 }) 
       .lean();
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<FullOrder | null> {
-    // Mongoose.findByIdAndUpdate
-    // { new: true } garante que o documento retornado é a versão ATUALIZADA
+    //@ts-ignore
     return OrderModel.findByIdAndUpdate(id, { status }, { new: true }).lean();
   }
 }

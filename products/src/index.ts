@@ -7,7 +7,7 @@ app.use(express.json());
 
 app.use("/api/products", productRouter);
 
-const port = process.env.PORT || 3000; 
+const port = process.env.PORT || 3004; 
 app.listen(port, () => {
   console.log(`Products microservice running on http://localhost:${port}`);
 });

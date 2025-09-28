@@ -1,51 +1,41 @@
-FROM node:18-alpine3.18 AS build
-
-# Define o diretório de trabalho dentro do container
+# ---- BUILD ----
+FROM node:20-alpine AS build
 WORKDIR /usr/src/app
+ENV CI=true
 
-# Copia os arquivos de dependência
-COPY package*.json ./
+# Copia package.json e lock
+COPY package*.json tsconfig*.json ./
+RUN npm ci
 
-# Instala TODAS as dependências, incluindo as de desenvolvimento para compilar o projeto
-RUN npm install
-
-# Copia o restante do código-fonte do projeto
+# Copia tudo
 COPY . .
 
-# Gera o cliente Prisma (essencial antes da compilação)
-RUN npx prisma generate
+# Gera Prisma Client (com path maiúsculo)
+ENV PRISMA_SCHEMA_PATH=./src/Data/Db/Prisma/schema.prisma
+RUN npx prisma generate --schema=$PRISMA_SCHEMA_PATH
 
-# Compila o código TypeScript para JavaScript.
-# Este comando assume que você tem um script "build" no seu package.json (ex: "build": "tsc")
+# Compila TS -> JS
 RUN npm run build
 
-# ---- 2. Production Stage ----
-# Começamos uma nova imagem limpa para a versão final
-FROM node:18-alpine3.18
-
+# ---- RUNTIME ----
+FROM node:20-alpine AS runtime
 WORKDIR /usr/src/app
 
-RUN apk update && apk add openssl1.1-compat
+ENV NODE_ENV=production \
+    PORT=3000 \
+    PRISMA_SCHEMA_PATH=./src/Data/Db/Prisma/schema.prisma
 
-# Copia os arquivos de dependência novamente
+RUN apk add --no-cache tini
+
+# Só dependências de produção
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Instala APENAS as dependências de produção
-RUN npm ci --only=production
-
-
-COPY --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
-
-# Copia o código JavaScript compilado da etapa de 'build'
-# Isso assume que seu tsconfig.json gera os arquivos em uma pasta "dist"
+# Copia artefatos buildados + schema
 COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/src/Data/Db/Prisma ./src/Data/Db/Prisma
 
-# Copia o schema.prisma, que é necessário em tempo de execução pelo Prisma
-COPY --from=build /usr/src/app/src/Data/Db/Prisma/schema.prisma ./src/Data/Db/Prisma/schema.prisma
-
-# Expõe a porta em que a aplicação vai rodar
 EXPOSE 3000
 
-# O comando para iniciar a aplicação
-# O caminho exato pode variar dependendo da sua configuração no tsconfig.json
-CMD [ "npm", "start" ]
+ENTRYPOINT ["/sbin/tini","--"]
+CMD ["sh","-c","npx prisma generate --schema=$PRISMA_SCHEMA_PATH && npx prisma migrate deploy --schema=$PRISMA_SCHEMA_PATH && npm start"]

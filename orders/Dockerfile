@@ -1,7 +1,7 @@
 # ---- 1. Build Stage ----
 FROM node:18-alpine3.18 AS build
 
-WORKDIR /usr/src/app
+WORKDIR /orders/src/app
 
 # Copia os arquivos de dependência
 COPY package*.json ./
@@ -22,7 +22,7 @@ RUN npm run build
 # ---- 2. Production Stage ----
 FROM node:18-alpine3.18
 
-WORKDIR /usr/src/app
+WORKDIR /orders/src/app
 
 RUN apk update && apk add openssl1.1-compat
 
@@ -31,13 +31,13 @@ COPY package*.json ./
 # Instala APENAS as dependências de produção
 RUN npm ci --only=production
 
-COPY --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
+COPY --from=build /orders/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
 
 # Copia o código JavaScript compilado da etapa de 'build'
-COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /orders/src/app/dist ./dist
 
 # Copia o schema.prisma, que é necessário em tempo de execução pelo Prisma
-COPY --from=build /usr/src/app/src/Data/Db/Prisma/schema.prisma ./src/Data/Db/Prisma/schema.prisma
+COPY --from=build /orders/src/app/src/Data/Db/Prisma/schema.prisma ./src/Data/Db/Prisma/schema.prisma
 
 # Expõe a porta da aplicação
 EXPOSE 3000

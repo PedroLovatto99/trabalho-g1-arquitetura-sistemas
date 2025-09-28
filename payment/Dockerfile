@@ -1,46 +1,50 @@
-# ---- 1. Build Stage ----
-FROM node:18-alpine3.18 AS build
+# ---- 1) BUILD ----
+FROM node:20-alpine AS build
+WORKDIR /payments/src/app
 
-WORKDIR /usr/src/app
+# Evita prompts interativos em CI
+ENV CI=true
 
-# Copia os arquivos de dependência
-COPY package*.json ./
+# 1) Copia mínimos para cache eficiente
+COPY package*.json tsconfig*.json ./
+# 2) Copia o schema já agora para gerar o Client usado no build TS
+COPY src/Data/Db/prisma/schema.prisma ./src/Data/Db/prisma/schema.prisma
 
-# Instala TODAS as dependências para compilar o projeto
-RUN npm install
+# Instala TODAS as dependências (inclui dev) para compilar
+RUN npm ci
 
-# Copia o restante do código-fonte
+# Gera Prisma Client (tipos para o build)
+RUN npx prisma generate --schema=./src/Data/Db/prisma/schema.prisma
+
+# Copia o restante do código
 COPY . .
 
-# Gera o cliente Prisma
-RUN npx prisma generate
-
-# Compila o código TypeScript para JavaScript
-# Garanta que você tenha um script "build": "tsc" no seu package.json
+# Compila TS -> JS
 RUN npm run build
 
-# ---- 2. Production Stage ----
-FROM node:18-alpine3.18
+# ---- 2) RUNTIME ----
+FROM node:20-alpine AS runtime
+WORKDIR /payments/src/app
 
-WORKDIR /usr/src/app
+# Variáveis padrão (ajuste conforme necessário)
+ENV NODE_ENV=production \
+    PORT=3000 \
+    PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
 
-RUN apk update && apk add openssl1.1-compat
+# Init leve para sinais/defuncts
+RUN apk add --no-cache tini
 
+# Apenas dependências de produção
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Instala APENAS as dependências de produção
-RUN npm ci --only=production
+# Artefatos do build + schema
+COPY --from=build /payments/src/app/dist ./dist
+COPY --from=build /payments/src/app/src/Data/Db/prisma ./src/Data/Db/prisma
 
-COPY --from=build /usr/src/app/node_modules/.prisma/client ./node_modules/.prisma/client
-
-# Copia o código JavaScript compilado da etapa de 'build'
-COPY --from=build /usr/src/app/dist ./dist
-
-# Copia o schema.prisma, que é necessário em tempo de execução pelo Prisma
-COPY --from=build /usr/src/app/src/Data/Db/prisma/schema.prisma ./src/Data/Db/prisma/schema.prisma
-
-# Expõe a porta da aplicação
+# Porta da aplicação
 EXPOSE 3000
 
-# Comando para iniciar a aplicação
-CMD [ "npm", "start" ]
+# Sem entrypoint.sh: roda generate + migrate deploy e sobe a app
+ENTRYPOINT ["/sbin/tini","--"]
+CMD ["sh","-c","npx prisma generate --schema=$PRISMA_SCHEMA_PATH && npx prisma migrate deploy --schema=$PRISMA_SCHEMA_PATH && npm start"]
