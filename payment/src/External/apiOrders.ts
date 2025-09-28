@@ -17,7 +17,7 @@ export interface UpdateOrderStatusDTO {
 
 // A estrutura de um pagamento que a API retorna após a criação
 export interface OrderDto {
-  id: string;
+  _id: string;
   clientId: string;
   total: number;
   status: string;
@@ -50,7 +50,7 @@ export class OrdersServiceHttpClient implements IOrderApi {
     try {
       // Faz a requisição POST para o endpoint de criação de pagamentos
       // O objeto 'paymentData' é enviado como corpo (body) da requisição
-      const response = await ordersApi.post<OrderDto>(`/${orderId}`);
+      const response = await ordersApi.get<OrderDto>(`/${orderId}`);
 
       // Retorna os dados do pagamento criado que a API retornou
       return response.data;
@@ -66,7 +66,7 @@ export class OrdersServiceHttpClient implements IOrderApi {
     try {
       // Faz a requisição POST para o endpoint de criação de pagamentos
       // O objeto 'paymentData' é enviado como corpo (body) da requisição
-      const response = await ordersApi.post(`/${orderId}`, status);
+      const response = await ordersApi.patch(`/${orderId}/status`, status);
 
       // Retorna os dados do pagamento criado que a API retornou
       return response.data;

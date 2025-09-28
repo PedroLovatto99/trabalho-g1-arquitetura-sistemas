@@ -10,12 +10,12 @@ const commonConfig = {
 
 export const productsApi = axios.create({
   ...commonConfig,
-  baseURL: process.env.PRODUCTS_API_URL || "http://localhost:3001/api/products",
+  baseURL: process.env.PRODUCTS_API_URL || "http://localhost:3000/api/products",
 });
 
 export const ordersApi = axios.create({
   ...commonConfig,
-  baseURL: process.env.ORDER_API_URL ||  "http://localhost:3002/api/payments",
+  baseURL: process.env.ORDER_API_URL ||  "http://localhost:3003/api/orders",
 });
 
 export const notificationAPI = axios.create({

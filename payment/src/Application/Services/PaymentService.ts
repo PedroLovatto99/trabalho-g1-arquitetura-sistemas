@@ -5,7 +5,7 @@ import { IPaymentRepository } from "../../Infrastucture/Interfaces/IPaymentRepos
 import { CreatePaymentDTO, UpdatePaymentDTO } from "../Dtos/PaymentDtos";
 import { IPaymentService } from "../Interfaces/IPaymentService";
 import { notificationAPI } from "../../External/api";
-
+import type { Status } from "@prisma/client";
 export class PaymentService implements IPaymentService {
   constructor(
     private readonly repo: IPaymentRepository,
@@ -13,9 +13,18 @@ export class PaymentService implements IPaymentService {
     private readonly productApi: IProductApi
   ) {}
 
-  create(dto: CreatePaymentDTO) {
+  async create(dto: CreatePaymentDTO) {
     if (dto.amountPaid <= 0) throw new Error("amountPaid must be > 0");
-    return this.repo.create(dto);
+
+    // Adicionamos o status inicial antes de enviar para o repositório
+    const paymentData = {
+      ...dto,
+    };
+
+    console.log(
+      `Criando pagamento para o pedido ${dto.orderId} com status PENDING.`
+    );
+    return this.repo.create(paymentData);
   }
 
   async processPayment(
@@ -28,6 +37,7 @@ export class PaymentService implements IPaymentService {
     }
 
     const order = await this.orderApi.getOrder(payment.orderId);
+    console.log("🚀 ~ PaymentService ~ processPayment ~ order:", order)
 
     if (!order) {
       throw new Error("Pedido não encontrado");
@@ -40,16 +50,48 @@ export class PaymentService implements IPaymentService {
       throw new Error("Um ou mais produtos não foram encontrados.");
     }
 
+    // Passo 1: Validar o estoque para TODOS os produtos do pedido
+    order.products.forEach((orderProduct) => {
+      // Encontra o produto correspondente que veio do serviço
+      const productInStock = productsFromService.find(
+        (p) => p.id === orderProduct.productId
+      );
+
+      // Se não encontrar o produto (já validado antes, mas bom garantir) ou se o estoque for insuficiente
+      if (!productInStock || productInStock.stock < orderProduct.quantity) {
+        throw new Error(
+          `Estoque insuficiente para o produto ${
+            productInStock?.name || orderProduct.productId
+          }.`
+        );
+      }
+    });
+
+    // Passo 2: Se todas as validações passaram, prossiga para diminuir o estoque
+    console.log("Estoque validado com sucesso. Ajustando...");
     await Promise.all(
-      order.products.map((p) =>
-        this.productApi.adjustStock(p.productId, p.quantity)
-      )
+      order.products.map((orderProduct) => {
+        // 1. Encontra o produto novamente para pegar o estoque atual
+        const productInStock = productsFromService.find(
+          (p) => p.id === orderProduct.productId
+        )!; // Usamos '!' pois a existência do produto já foi garantida no loop anterior
+
+        // 2. Calcula o novo nível do estoque
+        const newStockLevel = productInStock.stock - orderProduct.quantity;
+
+        // 3. Envia o NOVO TOTAL do estoque para a API
+        return this.productApi.adjustStock(
+          orderProduct.productId,
+          newStockLevel
+        );
+      })
     );
 
     const approved = Math.random() > 0.5;
     const newStatus = approved ? "2" : "3";
 
-    await this.orderApi.updateStatus(order.id, { status: newStatus });
+    console.log("🚀 ~ PaymentService ~ processPayment ~ order:", order)
+    await this.orderApi.updateStatus(order._id, { status: newStatus });
     await this.repo.update({
       id: paymentId,
       typePaymentId: newStatus,
@@ -58,11 +100,11 @@ export class PaymentService implements IPaymentService {
 
     await notificationAPI.get("/");
 
-    return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" };
+    return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" ,  };
   }
 
-  get(id: string) {
-    return this.repo.findById(id);
+  async get(id: string) {
+    return await this.repo.findById(id);
   }
 
   list(params?: {

@@ -2,17 +2,17 @@ version: '3.8'
 
 services:
   orders-db:
-    image: mongo:6.0
+    image: mongo
     container_name: orders_db
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
-    volumes:
-      - orders_mongo_data:/data/db
     ports:
       - "27017:27017"
-
+    volumes:
+    - orders_mongo_data:/data/db
+    
   payments-db:
     image: postgres:15
     container_name: payments_db
@@ -52,64 +52,64 @@ services:
     ports:
       - "5433:5432"
 
-  order-service:
-    build: ./orders
-    container_name: orders_service
-    restart: always
-    ports:
-      - "3003:3000"
-    environment:
-      - DATABASE_URL=mongodb://orders-db:27017/orders_db
-      - PRODUCTS_API_URL=http://localhost:3001/api/products
-      - PAYMENTS_API_URL=http://localhost:3000/api/payments
-    depends_on:
-      - orders-db
+  # order-service:
+  #   build: ./orders
+  #   container_name: orders_service
+  #   restart: always
+  #   ports:
+  #     - "3003:3000"
+  #   environment:
+  #     - DATABASE_URL=mongodb://orders-db:27017/orders_db
+  #     - PRODUCTS_API_URL=http://localhost:3001/api/products
+  #     - PAYMENTS_API_URL=http://localhost:3000/api/paymentsx'
+  #   depends_on:
+  #     - orders-db
 
-  product-service:
-    build: ./products
-    container_name: products_service
-    restart: always
-    ports:
-      - "3004:3000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
-    depends_on:
-      - products-db
+  # product-service:
+  #   build: ./products
+  #   container_name: products_service
+  #   restart: always
+  #   ports:
+  #     - "3004:3000"
+  #   environment:
+  #     - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
+  #   depends_on:
+  #     - products-db
 
-  user-service:
-    build: ./users
-    container_name: users_service
-    restart: always
-    ports:
-      - "3005:3000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
-    depends_on:
-      - users-db
+  # user-service:
+  #   build: ./users
+  #   container_name: users_service
+  #   restart: always
+  #   ports:
+  #     - "3005:3000"
+  #   environment:
+  #     - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
+  #   depends_on:
+  #     - users-db
 
-  notification-service:
-    build: ./notification
-    container_name: notification_service
-    restart: always
-    ports:
-      - "3007:3000"
+  # notification-service:
+  #   build: ./notification
+  #   container_name: notification_service
+  #   restart: always
+  #   ports:
+  #     - "3007:3000"
 
-  payment-service:
-    build: ./payment
-    container_name: payments_service
-    restart: always
-    ports:
-      - "3006:3000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin@payments-db:5432/payments_db
-      - ORDER_API_URL=http://order-service:3000
-      - PRODUCTS_API_URL=http://products-service:3000
-      - NOTIFICATION_API_URL=http://notification-service:3000
-    depends_on:
-      - payments-db
-      - order-service
-      - product-service
-      - notification-service
+  # payment-service:
+  #   build: ./payment
+  #   container_name: payments_service
+  #   restart: always
+  #   ports:
+  #     - "3006:3000"
+  #   environment:
+  #     - DATABASE_URL=postgresql://admin:admin@payments-db:5432/payments_db
+  #     - ORDER_API_URL=http://order-service:3000
+  #     - PRODUCTS_API_URL=http://products-service:3000
+  #     - NOTIFICATION_API_URL=http://notification-service:3000
+  #   depends_on:
+  #     - payments-db
+  #     - order-service
+  #     - product-service
+  #     - notification-service
 
   pgadmin:
     image: dpage/pgadmin4
@@ -125,21 +125,21 @@ services:
     depends_on:
       - payments-db
 
-  mongo-express:
-    image: mongo-express
-    container_name: mongo_express_ui
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
-      ME_CONFIG_MONGODB_SERVER: orders-db
-      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin
-    depends_on:
-      - orders-db
+  # mongo-express:
+  #   image: mongo-express
+  #   container_name: mongo_express_ui
+  #   restart: always
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+  #     ME_CONFIG_MONGODB_SERVER: orders-db
+  #     ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+  #     ME_CONFIG_BASICAUTH_USERNAME: admin
+  #     ME_CONFIG_BASICAUTH_PASSWORD: admin
+  #   depends_on:
+  #     - orders-db
       
 volumes:
   orders_mongo_data:

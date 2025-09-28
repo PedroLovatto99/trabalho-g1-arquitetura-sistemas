@@ -88,8 +88,8 @@ export class ProductServiceHttpClient implements IProductApi {
 
       return products;
     } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-      throw new Error("Falha na comunicação com o serviço de produtos.");
+      console.error("Erro ao buscar produtos:", error); 
+      return []    
     }
   }
 

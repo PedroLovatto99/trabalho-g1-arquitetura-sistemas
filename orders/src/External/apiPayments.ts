@@ -17,7 +17,6 @@ export interface Payment {
   orderId: string;
   typePaymentId: string;
   amountPaid: number;
-  status: string; // Ex: 'PENDING'
   paidAt: string | null;
   createdAt: string;
 }
@@ -40,7 +39,7 @@ export class PaymentServiceHttpClient implements IPaymentApi {
     try {
       // Faz a requisição POST para o endpoint de criação de pagamentos
       // O objeto 'paymentData' é enviado como corpo (body) da requisição
-      const response = await paymentsApi.post<Payment>('', paymentData);
+      const response = await paymentsApi.post<Payment>('/', paymentData);
 
       // Retorna os dados do pagamento criado que a API retornou
       return response.data;

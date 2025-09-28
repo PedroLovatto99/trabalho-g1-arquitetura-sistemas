@@ -96,10 +96,10 @@ export class ProductServiceHttpClient implements IProductApi {
   /**
    * CORRIGIDO: Ajusta o estoque usando a instância 'api' e o caminho relativo.
    */
-  async adjustStock(productId: string, quantity: number): Promise<void> {
+  async adjustStock(productId: string, stock: number): Promise<void> {
     try {
       // ✅ Usa a instância 'api' e apenas o caminho do endpoint.
-      await productsApi.patch(`/api/products/${productId}`, { quantity });
+      await productsApi.patch(`/${productId}`, { stock });
     } catch (error) {
       console.error(`Erro ao ajustar estoque do produto ${productId}:`, error);
       throw new Error(

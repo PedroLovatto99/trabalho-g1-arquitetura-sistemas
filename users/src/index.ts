@@ -1,5 +1,6 @@
 import express from "express";
 import clientRouter from "./Api/Controllers/ClientController";
+import 'dotenv/config';
 
 const app = express();
 app.use(express.json());

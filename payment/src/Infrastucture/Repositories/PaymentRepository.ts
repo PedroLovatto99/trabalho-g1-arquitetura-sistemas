@@ -15,7 +15,7 @@ export class PaymentRepository implements IPaymentRepository {
       data: {
         orderId: data.orderId,
         typePaymentId: data.typePaymentId,
-        statusId: 1, // <-- ADICIONE ESTA LINHA (Status: AGUARDANDO PAGAMENTO)
+        statusId: 1,
         amountPaid: new Prisma.Decimal(data.amountPaid),
         paidAt: data.paidAt ?? null,
       },
@@ -24,7 +24,9 @@ export class PaymentRepository implements IPaymentRepository {
   }
 
   async findById(id: string): Promise<PaymentEntity | null> {
-    const found = await this.prisma.payment.findUnique({ where: { id } });
+    const found = await this.prisma.payment.findUnique({
+      where: { id }, 
+    });
     return found ? PaymentMapper.toEntity(found) : null;
   }
 
