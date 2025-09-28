@@ -2,6 +2,10 @@
 FROM node:20-alpine AS build
 WORKDIR /usr/src/app
 
+# --- ADICIONADO ---
+# Instala OpenSSL, necessário para o Prisma Client
+RUN apk update && apk add --no-cache openssl
+
 # Evita prompts interativos em CI
 ENV CI=true
 
@@ -26,13 +30,14 @@ RUN npm run build
 FROM node:20-alpine AS runtime
 WORKDIR /usr/src/app
 
+# --- ADICIONADO ---
+# Instala OpenSSL para a execução e tini para gerenciar o processo
+RUN apk update && apk add --no-cache openssl tini
+
 # Variáveis padrão (ajuste conforme necessário)
 ENV NODE_ENV=production \
     PORT=3000 \
     PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
-
-# Init leve para sinais/defuncts
-RUN apk add --no-cache tini
 
 # Apenas dependências de produção
 COPY package*.json ./

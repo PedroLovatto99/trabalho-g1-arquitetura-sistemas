@@ -2,6 +2,10 @@
 FROM node:20-alpine AS build
 WORKDIR /payments/src/app
 
+# --- ADICIONADO ---
+# Instala OpenSSL, necessário para o Prisma Client
+RUN apk update && apk add --no-cache openssl
+
 # Evita prompts interativos em CI
 ENV CI=true
 
@@ -31,8 +35,9 @@ ENV NODE_ENV=production \
     PORT=3000 \
     PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
 
-# Init leve para sinais/defuncts
-RUN apk add --no-cache tini
+# --- AJUSTADO ---
+# Instala OpenSSL para a execução e tini para gerenciar o processo
+RUN apk update && apk add --no-cache openssl tini
 
 # Apenas dependências de produção
 COPY package*.json ./
@@ -48,3 +53,4 @@ EXPOSE 3000
 # Sem entrypoint.sh: roda generate + migrate deploy e sobe a app
 ENTRYPOINT ["/sbin/tini","--"]
 CMD ["sh","-c","npx prisma generate --schema=$PRISMA_SCHEMA_PATH && npx prisma migrate deploy --schema=$PRISMA_SCHEMA_PATH && npm start"]
+

@@ -10,6 +10,13 @@ services:
       - "27017:27017"
     volumes:
       - orders_mongo_data:/data/db
+    # --- ADICIONADO ---
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --username admin --password admin --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   payments-db:
     image: postgres:15
@@ -23,6 +30,12 @@ services:
       - payments_postgres_data:/var/lib/postgresql/data
     ports:
       - "5434:5432"
+    # --- ADICIONADO ---
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d payments_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   products-db:
     image: postgres:15
@@ -36,6 +49,12 @@ services:
       - products_postgres_data:/var/lib/postgresql/data
     ports:
       - "5435:5432"
+    # --- ADICIONADO ---
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d products_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   users-db:
     image: postgres:15
@@ -49,6 +68,12 @@ services:
       - users_postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    # --- ADICIONADO ---
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d users_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   order-service:
     build: ./orders
@@ -57,12 +82,13 @@ services:
     ports:
       - "3003:3000"
     environment:
-      # COM AUTENTICAÇÃO:
       - DATABASE_URL=mongodb://admin:admin@orders-db:27017/orders_db?authSource=admin
       - PRODUCTS_API_URL=http://product-service:3000/api/products
       - PAYMENTS_API_URL=http://payment-service:3000/api/payments
+    # --- AJUSTADO ---
     depends_on:
-      - orders-db
+      orders-db:
+        condition: service_healthy
 
   product-service:
     build: ./products
@@ -73,8 +99,10 @@ services:
     environment:
       - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
       - PRISMA_SCHEMA_PATH=./src/Data/Db/Prisma/schema.prisma
+    # --- AJUSTADO ---
     depends_on:
-      - products-db
+      products-db:
+        condition: service_healthy
 
   user-service:
     build: ./users
@@ -85,8 +113,10 @@ services:
     environment:
       - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
       - PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
+    # --- AJUSTADO ---
     depends_on:
-      - users-db
+      users-db:
+        condition: service_healthy
 
   notification-service:
     build: ./notification
@@ -106,11 +136,17 @@ services:
       - ORDER_API_URL=http://order-service:3000
       - PRODUCTS_API_URL=http://product-service:3000
       - NOTIFICATION_API_URL=http://notification-service:3000
+    # --- AJUSTADO ---
     depends_on:
-      - payments-db
-      - order-service
-      - product-service
-      - notification-service
+      payments-db:
+        condition: service_healthy
+      # Adicione condições para outros serviços se eles precisarem estar prontos antes
+      order-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
 
   pgadmin:
     image: dpage/pgadmin4
@@ -123,8 +159,10 @@ services:
       - "5050:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    # --- AJUSTADO ---
     depends_on:
-      - payments-db
+      payments-db:
+        condition: service_started # pgAdmin pode iniciar antes do DB estar healthy
 
   mongo-express:
     image: mongo-express
@@ -139,8 +177,10 @@ services:
       ME_CONFIG_MONGODB_AUTH_DATABASE: admin
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: admin
+    # --- AJUSTADO ---
     depends_on:
-      - orders-db
+      orders-db:
+        condition: service_healthy
 
 volumes:
   orders_mongo_data:
