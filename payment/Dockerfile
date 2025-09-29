@@ -23,7 +23,7 @@ RUN npx prisma generate --schema=./src/Data/Db/prisma/schema.prisma
 # Copia o restante do código
 COPY . .
 
-# Compila TS -> JS
+# Compila TS -> JS (Isso também vai compilar seu script de seed)
 RUN npm run build
 
 # ---- 2) RUNTIME ----
@@ -50,7 +50,7 @@ COPY --from=build /payments/src/app/src/Data/Db/prisma ./src/Data/Db/prisma
 # Porta da aplicação
 EXPOSE 3000
 
-# Sem entrypoint.sh: roda generate + migrate deploy e sobe a app
+# Sem entrypoint.sh: roda generate + migrate + seed e sobe a app
 ENTRYPOINT ["/sbin/tini","--"]
-CMD ["sh","-c","npx prisma generate --schema=$PRISMA_SCHEMA_PATH && npx prisma migrate deploy --schema=$PRISMA_SCHEMA_PATH && npm start"]
-
+# --- MODIFICADO: ADICIONADO O COMANDO "npx prisma db seed" ---
+CMD ["sh","-c","npx prisma generate --schema=$PRISMA_SCHEMA_PATH && npx prisma migrate deploy --schema=$PRISMA_SCHEMA_PATH && npx prisma db seed && npm start"]
