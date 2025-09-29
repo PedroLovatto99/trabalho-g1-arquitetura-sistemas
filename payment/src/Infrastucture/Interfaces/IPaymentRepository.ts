@@ -20,4 +20,5 @@ export interface IPaymentRepository {
   // utilitários comuns
   listByOrder(orderId: string): Promise<PaymentEntity[]>
   sumByOrder(orderId: string): Promise<number>
+  listPaymentsByOrder(orderId: string): Promise<PaymentEntity[]>;
 }

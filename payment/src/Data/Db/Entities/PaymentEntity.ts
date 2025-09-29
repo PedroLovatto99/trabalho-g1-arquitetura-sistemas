@@ -5,5 +5,5 @@ export class PaymentEntity extends BaseEntity {
   typePaymentId!: string; 
   amountPaid!: number; 
   paidAt?: Date;
-
+  status?: { id: string; name: string; } | undefined;
 }

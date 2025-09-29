@@ -133,6 +133,33 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/order/:orderId", async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: "orderId é obrigatório"
+      });
+    }
+
+    const payments = await paymentService.listPaymentsByOrder(orderId);
+    
+    return res.json({
+      success: true,
+      data: payments
+    });
+  } catch (error) {
+    console.error("Erro ao buscar pagamentos do pedido:", error);
+    return res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : "Erro ao buscar pagamentos do pedido"
+    });
+  }
+});
+
+
 // GET /api/payments/order/:orderId/balance
 // router.patch("/:orderId", async (req: Request, res: Response) => {
 //   try {

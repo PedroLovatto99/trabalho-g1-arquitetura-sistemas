@@ -4,7 +4,7 @@ import { Payment } from "@prisma/client";
 import { PaymentEntity } from "../../Data/Db/Entities/PaymentEntity";
 
 export class PaymentMapper {
-  static toEntity(p: Payment): PaymentEntity {
+  static toEntity(p: Payment & { status?: { id: string; name: string } }): PaymentEntity {
     const e = new PaymentEntity();
     e.id = p.id;
     e.orderId = p.orderId;
@@ -13,6 +13,10 @@ export class PaymentMapper {
     e.paidAt = p.paidAt ?? new Date(0);
     e.createdAt = p.createdAt;
     e.updatedAt = p.updatedAt;
+    e.status = p.status ? {
+      id: p.status.id,  // O ID já vem como number do Prisma
+      name: p.status.name
+    } : undefined;
     return e;
   }
 

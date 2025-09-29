@@ -57,6 +57,9 @@ export class PaymentRepository implements IPaymentRepository {
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
+        include: {
+          status: true 
+        }
       }),
       this.prisma.payment.count({ where }),
     ]);
@@ -81,6 +84,7 @@ export class PaymentRepository implements IPaymentRepository {
     const updated = await this.prisma.payment.update({
       where: { id: data.id },
       data: updateData,
+      
     });
     return PaymentMapper.toEntity(updated);
   }
@@ -105,4 +109,18 @@ export class PaymentRepository implements IPaymentRepository {
     const total = rows.reduce((acc, r) => acc + Number(r.amountPaid), 0);
     return Number(total.toFixed(2));
   }
+
+  async listPaymentsByOrder(orderId: string): Promise<PaymentEntity[]> {
+    const payments = await this.prisma.payment.findMany({
+      where: { orderId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        status: true,
+        typePayment: true
+      }
+    });
+    
+    return PaymentMapper.toEntityList(payments);
+  }
+
 }

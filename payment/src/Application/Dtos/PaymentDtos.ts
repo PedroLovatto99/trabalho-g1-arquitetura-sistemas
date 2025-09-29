@@ -8,6 +8,7 @@ export type CreatePaymentDTO = {
 export type UpdatePaymentDTO = {
   id: string;
   orderId?: string;
+  statusId?: number;
   typePaymentId?: string;
   amountPaid?: number;
   paidAt?: Date | null;

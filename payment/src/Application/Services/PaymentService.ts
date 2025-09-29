@@ -29,7 +29,7 @@ export class PaymentService implements IPaymentService {
 
   async processPayment(
     paymentId: string
-  ): Promise<{ paymentId: string; status: string; orderId?: string }> {
+  ): Promise<{ paymentId: string; status: string; orderId?: string; notification?: string  }> {
     const payment = await this.get(paymentId);
 
     if (!payment) {
@@ -94,13 +94,13 @@ export class PaymentService implements IPaymentService {
     await this.orderApi.updateStatus(order._id, { status: newStatus });
     await this.repo.update({
       id: paymentId,
-      typePaymentId: newStatus,
+      statusId: Number(newStatus),
       paidAt: approved ? new Date() : null,
     });
 
-    await notificationAPI.get("/");
+    const notificationResponse = await notificationAPI.get("/");
 
-    return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" ,  };
+    return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" , notification: notificationResponse.data.message };
   }
 
   async get(id: string) {
@@ -130,4 +130,13 @@ export class PaymentService implements IPaymentService {
   async getOrderBalance(orderId: string) {
     return this.repo.sumByOrder(orderId);
   }
+
+  async listPaymentsByOrder(orderId: string) {
+    if (!orderId) {
+      throw new Error("OrderId é obrigatório");
+    }
+    return this.repo.listByOrder(orderId);
+  }
+
+
 }
