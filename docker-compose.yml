@@ -1,6 +1,6 @@
 services:
   orders-db:
-    image: mongo
+    image: mongo:6
     container_name: orders_db
     restart: always
     environment:

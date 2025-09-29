@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 app.use("/api/orders", ordersRouter);
-const port = process.env.PORT || 3003;
+const port = process.env.PORT || 3000;
 
 connectDB().then(() => {
     app.listen(port, () => {
