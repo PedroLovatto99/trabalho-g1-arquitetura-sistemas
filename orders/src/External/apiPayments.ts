@@ -7,7 +7,7 @@ import { paymentsApi } from './api'; // Importando a instância do Axios para o 
 // O DTO que a função recebe para criar um pagamento
 export type CreatePaymentDTO = {
   orderId: string;
-  typePaymentId: string; // Ex: 'CREDIT_CARD', 'PIX'
+  typePaymentId: string[]; // Ex: 'CREDIT_CARD', 'PIX'
   amountPaid: number;
 };
 
@@ -15,14 +15,20 @@ export type CreatePaymentDTO = {
 export interface Payment {
   id: string;
   orderId: string;
-  typePaymentId: string;
+  typePaymentIds: string;
   amountPaid: number;
   paidAt: string | null;
   createdAt: string;
 }
 
+export interface CreatePaymentRequest {
+  orderId: string;
+  amountPaid: number;
+  typePaymentIds: string[]; // Match the property name
+}
+
 export interface IPaymentApi {
-  createPayment(paymentData: CreatePaymentDTO): Promise<Payment>;
+  createPayment(data: CreatePaymentRequest): Promise<{ id: string }>;
   // Você pode adicionar outros métodos aqui conforme necessário
 }
 
@@ -33,7 +39,7 @@ export class PaymentServiceHttpClient implements IPaymentApi {
    * @param paymentData - As informações do pagamento a ser criado.
    * @returns O objeto do pagamento recém-criado.
    */
-  async createPayment(paymentData: CreatePaymentDTO): Promise<Payment> {
+    async createPayment(paymentData: CreatePaymentRequest): Promise<Payment> {
     console.log('Enviando requisição para criar pagamento...', paymentData);
 
     try {

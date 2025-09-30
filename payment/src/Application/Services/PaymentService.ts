@@ -15,6 +15,9 @@ export class PaymentService implements IPaymentService {
 
   async create(dto: CreatePaymentDTO) {
     if (dto.amountPaid <= 0) throw new Error("amountPaid must be > 0");
+    if (!dto.typePaymentIds?.length) {
+      throw new Error("Ao menos um tipo de pagamento deve ser informado");
+    }
 
     // Adicionamos o status inicial antes de enviar para o repositório
     const paymentData = {
@@ -26,6 +29,8 @@ export class PaymentService implements IPaymentService {
     );
     return this.repo.create(paymentData);
   }
+
+  
 
   async processPayment(
     paymentId: string

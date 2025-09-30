@@ -24,19 +24,16 @@ model TypePayment {
 }
 
 model Payment {
-  id              String      @id @default(uuid())
-  orderId         String
+  id            String        @id @default(uuid())
+  orderId       String
   statusId      Int
-  status        Status      @relation(fields: [statusId], references: [id])
-  typePaymentId   String      @map("type_payment_id")
-  typePayment     TypePayment @relation(fields: [typePaymentId], references: [id], onDelete: Restrict)
-  amountPaid      Decimal     @db.Decimal(12, 2) @map("amount_paid")
+  status        Status        @relation(fields: [statusId], references: [id])
+  typePayments  TypePayment[]
+  amountPaid    Decimal       @db.Decimal(12, 2) @map("amount_paid")
+  paidAt        DateTime?     @map("paid_at")
+  createdAt     DateTime      @default(now())    @map("created_at")
+  updatedAt     DateTime      @updatedAt         @map("updated_at")
 
-  paidAt          DateTime?   @map("paid_at")
-  createdAt       DateTime    @default(now())    @map("created_at")
-  updatedAt       DateTime    @updatedAt         @map("updated_at")
-
-  @@index([typePaymentId])
   @@index([orderId])
   @@map("payments")
 }

@@ -9,8 +9,8 @@ export interface CreateOrderProductDto {
 // DTO para criar um novo pedido
 export interface CreateOrderDTO {
   clientId: string;
-  typePaymentId: string;
   products: CreateOrderProductDto[];
+  typePaymentIds: string[];
 }
 
 // DTO para atualizar o status de um pedido

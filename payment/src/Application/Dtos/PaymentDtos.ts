@@ -1,6 +1,6 @@
 export type CreatePaymentDTO = {
   orderId: string;
-  typePaymentId: string;
+  typePaymentIds: string[]; 
   amountPaid: number;
   paidAt?: Date | null;
 };
@@ -9,7 +9,7 @@ export type UpdatePaymentDTO = {
   id: string;
   orderId?: string;
   statusId?: number;
-  typePaymentId?: string;
+  typePaymentIds?: string[];
   amountPaid?: number;
   paidAt?: Date | null;
 };

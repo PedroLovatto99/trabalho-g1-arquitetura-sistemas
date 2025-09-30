@@ -70,7 +70,7 @@ export class OrderService implements IOrderService {
     const createPayment = await this.paymentServiceApi.createPayment({
       orderId: createdOrder.id,
       amountPaid: total,
-      typePaymentId: dto.typePaymentId,
+      typePaymentIds: dto.typePaymentIds // Use the correct property name
     });
 
     // 5) Retorna FullOrder (pedido + paymentId)
