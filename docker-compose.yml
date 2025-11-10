@@ -164,6 +164,7 @@ services:
       payments-db:
         condition: service_started # pgAdmin pode iniciar antes do DB estar healthy
 
+
   mongo-express:
     image: mongo-express
     container_name: mongo_express_ui
@@ -182,9 +183,52 @@ services:
       orders-db:
         condition: service_healthy
 
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    restart: always
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+      - ./influxdb-init/init-influxdb.sh:/docker-entrypoint-initdb.d/init-influxdb.sh
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - influxdb
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  # === K6 ===
+  k6:
+    image: grafana/k6:latest
+    container_name: k6_runner
+    depends_on:
+      - payment-service
+      - order-service
+      - influxdb
+    volumes:
+      - ./k6-scripts:/scripts
+    entrypoint: ["k6"]
+    networks:
+      - default
+
 volumes:
   orders_mongo_data:
   products_postgres_data:
   users_postgres_data:
   payments_postgres_data:
   pgadmin_data:
+  influxdb_data:
+  grafana_data:
