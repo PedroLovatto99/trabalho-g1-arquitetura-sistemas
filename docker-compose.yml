@@ -10,13 +10,6 @@ services:
       - "27017:27017"
     volumes:
       - orders_mongo_data:/data/db
-    # --- ADICIONADO ---
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh --username admin --password admin --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
 
   payments-db:
     image: postgres:15
@@ -30,12 +23,6 @@ services:
       - payments_postgres_data:/var/lib/postgresql/data
     ports:
       - "5434:5432"
-    # --- ADICIONADO ---
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d payments_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   products-db:
     image: postgres:15
@@ -49,12 +36,6 @@ services:
       - products_postgres_data:/var/lib/postgresql/data
     ports:
       - "5435:5432"
-    # --- ADICIONADO ---
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d products_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   users-db:
     image: postgres:15
@@ -68,12 +49,6 @@ services:
       - users_postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
-    # --- ADICIONADO ---
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d users_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
   order-service:
     build: ./orders
@@ -85,10 +60,8 @@ services:
       - DATABASE_URL=mongodb://admin:admin@orders-db:27017/orders_db?authSource=admin
       - PRODUCTS_API_URL=http://product-service:3000/api/products
       - PAYMENTS_API_URL=http://payment-service:3000/api/payments
-    # --- AJUSTADO ---
     depends_on:
-      orders-db:
-        condition: service_healthy
+      - orders-db
 
   product-service:
     build: ./products
@@ -99,10 +72,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
       - PRISMA_SCHEMA_PATH=./src/Data/Db/Prisma/schema.prisma
-    # --- AJUSTADO ---
     depends_on:
-      products-db:
-        condition: service_healthy
+      - products-db
 
   user-service:
     build: ./users
@@ -113,10 +84,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
       - PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
-    # --- AJUSTADO ---
     depends_on:
-      users-db:
-        condition: service_healthy
+      - users-db
 
   notification-service:
     build: ./notification
@@ -124,6 +93,11 @@ services:
     restart: always
     ports:
       - "3007:3000"
+    environment:
+      # CORRIGIDO: Usando as credenciais corretas (admin/admin)
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      - rabbitmq
 
   payment-service:
     build: ./payment
@@ -135,18 +109,24 @@ services:
       - DATABASE_URL=postgresql://admin:admin@payments-db:5432/payments_db
       - ORDER_API_URL=http://order-service:3000/api/orders
       - PRODUCTS_API_URL=http://product-service:3000/api/products
-      - NOTIFICATION_API_URL=http://notification-service:3000/api/notification
-    # --- AJUSTADO ---
+      - USER_API_URL=http://user-service:3000/api/clients # Adicionada a URL do serviço de usuários
+      # CORRIGIDO: Usando as credenciais corretas (admin/admin)
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
-      payments-db:
-        condition: service_healthy
-      # Adicione condições para outros serviços se eles precisarem estar prontos antes
-      order-service:
-        condition: service_started
-      product-service:
-        condition: service_started
-      notification-service:
-        condition: service_started
+      - payments-db
+      - order-service
+      - product-service
+      - notification-service
+
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
 
   pgadmin:
     image: dpage/pgadmin4
@@ -159,11 +139,8 @@ services:
       - "5050:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
-    # --- AJUSTADO ---
     depends_on:
-      payments-db:
-        condition: service_started # pgAdmin pode iniciar antes do DB estar healthy
-
+      - payments-db
 
   mongo-express:
     image: mongo-express
@@ -178,51 +155,8 @@ services:
       ME_CONFIG_MONGODB_AUTH_DATABASE: admin
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: admin
-    # --- AJUSTADO ---
     depends_on:
-      orders-db:
-        condition: service_healthy
-
-  influxdb:
-    image: influxdb:1.8
-    container_name: influxdb
-    restart: always
-    ports:
-      - "8086:8086"
-    environment:
-      - INFLUXDB_DB=k6
-      - INFLUXDB_HTTP_AUTH_ENABLED=false
-    volumes:
-      - influxdb_data:/var/lib/influxdb
-      - ./influxdb-init/init-influxdb.sh:/docker-entrypoint-initdb.d/init-influxdb.sh
-
-  grafana:
-    image: grafana/grafana:10.2.3
-    container_name: grafana
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      - influxdb
-    volumes:
-      - grafana_data:/var/lib/grafana
-
-  # === K6 ===
-  k6:
-    image: grafana/k6:latest
-    container_name: k6_runner
-    depends_on:
-      - payment-service
-      - order-service
-      - influxdb
-    volumes:
-      - ./k6-scripts:/scripts
-    entrypoint: ["k6"]
-    networks:
-      - default
+      - orders-db
 
 volumes:
   orders_mongo_data:
@@ -230,5 +164,3 @@ volumes:
   users_postgres_data:
   payments_postgres_data:
   pgadmin_data:
-  influxdb_data:
-  grafana_data:

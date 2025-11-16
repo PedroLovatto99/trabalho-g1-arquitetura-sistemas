@@ -33,11 +33,16 @@ router.post(
   "/process/:paymentId",
   async (req: Request<{ paymentId: string }>, res: Response) => {
     try {
-      const paymentId = req.params.paymentId; // agora é string
-      const created = await paymentService.processPayment(paymentId);
-      res.status(201).json(created);
+      const { paymentId } = req.params;
+      const result = await paymentService.processPayment(paymentId);
+
+      return res.status(200).json({
+        paymentId: result.paymentId,
+        status: result.status,
+        orderId: result.orderId,
+      });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      return res.status(400).json({ message: error.message });
     }
   }
 );

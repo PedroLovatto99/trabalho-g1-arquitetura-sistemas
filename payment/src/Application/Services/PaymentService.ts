@@ -6,12 +6,20 @@ import { CreatePaymentDTO, UpdatePaymentDTO } from "../Dtos/PaymentDtos";
 import { IPaymentService } from "../Interfaces/IPaymentService";
 import { notificationAPI } from "../../External/api";
 import type { Status } from "@prisma/client";
+import { sendPaymentNotification } from "../rabbitmq/notification_producer"; 
+import { UserApi } from "../../External/apiUsers";
+
 export class PaymentService implements IPaymentService {
+
+  private readonly userApi: UserApi;
+
   constructor(
     private readonly repo: IPaymentRepository,
     private readonly orderApi: IOrderApi,
     private readonly productApi: IProductApi
-  ) {}
+  ) {
+    this.userApi = new UserApi();
+  }
 
   async create(dto: CreatePaymentDTO) {
     if (dto.amountPaid <= 0) throw new Error("amountPaid must be > 0");
@@ -34,7 +42,7 @@ export class PaymentService implements IPaymentService {
 
   async processPayment(
     paymentId: string
-  ): Promise<{ paymentId: string; status: string; orderId?: string; notification?: string  }> {
+  ): Promise<{ paymentId: string; status: string; orderId?: string;  }> {
     const payment = await this.get(paymentId);
 
     if (!payment) {
@@ -103,9 +111,22 @@ export class PaymentService implements IPaymentService {
       paidAt: approved ? new Date() : null,
     });
 
-    const notificationResponse = await notificationAPI.get("/");
+    // Colocar producer aqui, no lugar dessa chamada api
+    if (approved) {
+      // Corrigido: Agora `this.userApi` existe e pode ser chamado
+      const user = await this.userApi.getUser(order.clientId); 
+      if (user) {
+        await sendPaymentNotification({
+          orderId: order._id,
+          userName: user.name,
+        });
+      } else {
+        console.error(`Could not find user with id ${order.clientId} for notification.`);
+      }
+    }
 
-    return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" , notification: notificationResponse.data.message };
+    // Corrigido: Removemos a propriedade de notificação, pois ela não existe mais.
+    return { paymentId, status: newStatus, orderId: payment?.orderId ?? "" };
   }
 
   async get(id: string) {

@@ -22,3 +22,8 @@ export const notificationAPI = axios.create({
   ...commonConfig,
   baseURL: process.env.NOTIFICATION_API_URL ||  "http://localhost:3007/api/notification",
 });
+
+export const usersApi = axios.create({
+  ...commonConfig,
+  baseURL: process.env.NOTIFICATION_API_URL ||  "http://localhost:3007/api/clients",
+});
