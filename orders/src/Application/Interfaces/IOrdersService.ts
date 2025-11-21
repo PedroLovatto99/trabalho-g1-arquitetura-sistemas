@@ -1,6 +1,7 @@
 import { FullOrder } from "../../Infrastructure/Interfaces/IorderRepository";
 import { CreateOrderDTO, UpdateOrderStatusDTO } from "../Dtos/OrdersDto";
 
+// A palavra 'export' garante que a interface possa ser importada em outros arquivos.
 export interface IOrderService {
   create(dto: CreateOrderDTO): Promise<FullOrder>;
   findById(id: string): Promise<FullOrder | null>;

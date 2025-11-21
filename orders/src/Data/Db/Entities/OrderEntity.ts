@@ -1,73 +1,48 @@
-// Data/Db/Entities/OrderEntity.ts
-import { Schema, model, Types } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
+import { BaseEntity } from './BaseEntity';
 
-export interface IProductItem {
+export interface IProductItem extends Document {
   productId: string;
   productName: string;
   quantity: number;
   unitPrice: number;
 }
 
-export type OrderStatus =
-  | "AWAITING_PAYMENT"
-  | "PAYMENT_PROCESSING"
-  | "CONFIRMED"
-  | "SHIPPED"
-  | "DELIVERED"
-  | "CANCELED";
-
-export interface IOrder {
+export interface IOrder extends BaseEntity {
   clientId: string;
-  total: number;
-  status: OrderStatus;
   products: IProductItem[];
-  createdAt: Date;
-  updatedAt: Date;
+  total: number;
+  status: string;
 }
 
-const OrderSchema = new Schema<IOrder>(
-  {
-    clientId: { type: String, required: true },
-    total: { type: Number, required: true },
-    status: {
-      type: String,
-      enum: [
-        "AWAITING_PAYMENT",
-        "PAYMENT_PROCESSING",
-        "CONFIRMED",
-        "SHIPPED",
-        "DELIVERED",
-        "CANCELED",
-      ],
-      default: "AWAITING_PAYMENT",
-    },
-    products: [
-      {
-        productId: String,
-        productName: String,
-        quantity: Number,
-        unitPrice: Number,
-      },
-    ],
-  },
-  { timestamps: true, versionKey: false , toJSON: { virtuals: true },
-    toObject: { virtuals: true }}
-);
-
-// virtual id (string)
-OrderSchema.virtual('id').get(function() {
-    return this._id.toHexString();
+const ProductItemSchema: Schema = new Schema({
+  productId: { type: String, required: true },
+  productName: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  unitPrice: { type: Number, required: true },
 });
 
-// normaliza saída
-const transform = (_: any, ret: any) => {
-  ret.id = ret._id.toString();
-  delete ret._id;
-  delete ret.__v;
-  return ret;
-};
-OrderSchema.set("toJSON", { virtuals: true, transform });
-OrderSchema.set("toObject", { virtuals: true, transform });
+const OrderSchema: Schema = new Schema({
+  clientId: { type: String, required: true },
+  products: [ProductItemSchema],
+  total: { type: Number, required: true },
+  status: {
+    type: String,
+    required: true,
+    // CORRIGIDO: Adicionamos os status que faltavam, incluindo PENDING_PAYMENT
+    enum: [
+      'PENDING_PAYMENT', 
+      'PAYMENT_CONFIRMED',
+      'PROCESSING',
+      'SHIPPED',
+      'DELIVERED',
+      'CANCELED',
+    ],
+    // MUDANÇA: O status padrão de um novo pedido agora é PENDING_PAYMENT
+    default: 'PENDING_PAYMENT',
+  },
+}, {
+  timestamps: true, // Adiciona createdAt e updatedAt automaticamente
+});
 
-const OrderModel = model<IOrder>("Order", OrderSchema);
-export default OrderModel;
+export default mongoose.model<IOrder>('Order', OrderSchema);

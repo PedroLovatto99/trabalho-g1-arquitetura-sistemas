@@ -60,8 +60,10 @@ services:
       - DATABASE_URL=mongodb://admin:admin@orders-db:27017/orders_db?authSource=admin
       - PRODUCTS_API_URL=http://product-service:3000/api/products
       - PAYMENTS_API_URL=http://payment-service:3000/api/payments
+      - KAFKA_BROKER=kafka:9092
     depends_on:
       - orders-db
+      - kafka 
 
   product-service:
     build: ./products
@@ -94,7 +96,6 @@ services:
     ports:
       - "3007:3000"
     environment:
-      # CORRIGIDO: Usando as credenciais corretas (admin/admin)
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
       - rabbitmq
@@ -112,11 +113,13 @@ services:
       - USER_API_URL=http://user-service:3000/api/clients # Adicionada a URL do serviço de usuários
       # CORRIGIDO: Usando as credenciais corretas (admin/admin)
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+      - KAFKA_BROKER=kafka:9092
     depends_on:
       - payments-db
       - order-service
       - product-service
       - notification-service
+      - kafka
 
   rabbitmq:
     image: rabbitmq:3.9-management
@@ -127,6 +130,41 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-kafka-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'
 
   pgadmin:
     image: dpage/pgadmin4

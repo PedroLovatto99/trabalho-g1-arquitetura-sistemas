@@ -8,12 +8,14 @@ import {
 import { CreateOrderDTO, UpdateOrderStatusDTO } from "../Dtos/OrdersDto";
 import { IOrderService } from "../Interfaces/IOrdersService";
 import { ProductItem } from "@prisma/client";
+import { producer, TOPIC_NAME } from '../../index';
+
+
 
 export class OrderService implements IOrderService {
   // A dependência do productApi foi removida do construtor
   constructor(
     private orderRepo: IOrderRepository,
-    private paymentServiceApi: IPaymentApi,
     private productsServiceApi: IProductApi
   ) {}
 
@@ -23,62 +25,69 @@ export class OrderService implements IOrderService {
       throw new Error("O pedido precisa de produtos.");
     }
 
-    // 1) Normaliza e valida quantidades do DTO (soma duplicados)
     const qtyById = new Map<string, number>();
-    for (const [i, p] of dto.products.entries()) {
-      if (!p.productId)
-        throw new Error(`Produto[${i}]: productId obrigatório.`);
-      const q = Number(p.quantity);
-      if (!Number.isFinite(q) || q <= 0)
-        throw new Error(`Produto[${i}]: quantity inválido.`);
-      qtyById.set(p.productId, (qtyById.get(p.productId) ?? 0) + q);
-    }
+    dto.products.forEach(p => qtyById.set(p.productId, (qtyById.get(p.productId) ?? 0) + p.quantity));
 
-    // 2) Busca produtos no serviço e confere existência
     const uniqueIds = [...qtyById.keys()];
-    const productsFromService = await this.productsServiceApi.findManyByIds(
-      uniqueIds
-    );
-
+    const productsFromService = await this.productsServiceApi.findManyByIds(uniqueIds);
     if (productsFromService.length !== uniqueIds.length) {
       throw new Error("Um ou mais produtos não foram encontrados.");
     }
 
-    // 3) Monta items e calcula total (usa nome/preço do serviço + qty do DTO)
-    const productItems: ProductItem[] = productsFromService.map((sp) => {
-      const quantity = qtyById.get(sp.id)!; // garantido existir
-      const unitPrice = Number(sp.price);
-      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-        throw new Error(`Preço inválido para o produto ${sp.id}.`);
-      }
-      return {
-        productId: sp.id,
-        productName: sp.name,
-        unitPrice,
-        quantity,
-      };
+    const productItems: ProductItem[] = productsFromService.map((sp) => ({
+      productId: sp.id,
+      productName: sp.name,
+      unitPrice: Number(sp.price),
+      quantity: qtyById.get(sp.id)!,
+    }));
+
+    const total = productItems.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0);
+
+    const createdOrder = await this.orderRepo.create({
+        clientId: dto.clientId,
+        total: total,
+        products: productItems,
+        status: 'PENDING_PAYMENT',
     });
 
-    const total = productItems.reduce(
-      (sum, it) => sum + it.unitPrice * it.quantity,
-      0
-    );
+    // AGORA, APENAS A LÓGICA DO KAFKA SERÁ EXECUTADA:
+      try {
+        // CORRIGIDO: Convertendo o ObjectId para string antes de usá-lo.
+        const orderIdString = createdOrder._id.toString();
 
-    // 4) Cria pedido e pagamento
-    const createdOrder = await this.orderRepo.create(dto, total, productItems);
+        const kafkaMessagePayload = {
+            id_order: orderIdString, // Usa a string
+            id_client: createdOrder.clientId,
+            products: createdOrder.products.map(p => ({
+                id_product: p.productId,
+                value: p.unitPrice,
+                quantity: p.quantity,
+            })),
+            date: createdOrder.createdAt,
+            total_value: createdOrder.total,
+            met_pag: dto.typePaymentIds,
+            valor: createdOrder.total,
+        };
 
-    const createPayment = await this.paymentServiceApi.createPayment({
-      orderId: createdOrder.id,
-      amountPaid: total,
-      typePaymentIds: dto.typePaymentIds // Use the correct property name
-    });
+        await producer.send({
+            topic: TOPIC_NAME,
+            messages: [{ 
+                key: orderIdString, // Usa a string
+                value: JSON.stringify(kafkaMessagePayload) 
+            }],
+        });
 
-    // 5) Retorna FullOrder (pedido + paymentId)
-    return {
-      ...createdOrder,
-      paymentId: createPayment.id,
-    };
+        console.log(`[KAFKA] Evento do pedido [${orderIdString}] enviado para o tópico '${TOPIC_NAME}'.`);
+
+    } catch (error) {
+        console.error(`[KAFKA] FALHA ao enviar evento para o pedido ${createdOrder._id.toString()}. Revertendo...`, error);
+        await this.orderRepo.remove(createdOrder._id.toString());
+        throw new Error('Falha ao processar o pedido. Por favor, tente novamente.');
+    }
+
+    return createdOrder;
   }
+
   async findById(id: string): Promise<FullOrder | null> {
     return this.orderRepo.findById(id);
   }

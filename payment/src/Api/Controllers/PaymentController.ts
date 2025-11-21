@@ -10,23 +10,28 @@ import { PaymentRepository } from "../../Infrastucture/Repositories/PaymentRepos
 import { OrdersServiceHttpClient } from "../../External/apiOrders";
 import { ProductServiceHttpClient } from "../../External/apiProducts";
 import { Prisma, PrismaClient } from "@prisma/client";
-
+import { UserApi } from "../../External/apiUsers"; 
 // você injeta a implementação concreta aqui
-const paymentService = new PaymentService(new PaymentRepository(new PrismaClient()), new OrdersServiceHttpClient(), new ProductServiceHttpClient())
+const paymentService = new PaymentService(
+  new PaymentRepository(new PrismaClient()),
+  new OrdersServiceHttpClient(),
+  new ProductServiceHttpClient(),
+  new UserApi() // <--- Argumento adicionado
+);
 
 
 const router = Router();
 
 // POST /api/payments
-router.post("/", async (req: Request, res: Response) => {
-  try {
-    const dto = req.body as CreatePaymentDTO;
-    const created = await paymentService.create(dto);
-    res.status(201).json(created);
-  } catch (error: any) {
-    res.status(400).json({ message: error.message });
-  }
-});
+// router.post("/", async (req: Request, res: Response) => {
+//   try {
+//     const dto = req.body as CreatePaymentDTO;
+//     const created = await paymentService.create(dto);
+//     res.status(201).json(created);
+//   } catch (error: any) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
 
 // POST Processar POST
 router.post(
@@ -87,7 +92,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
     if (!id) return res.status(400).json({ message: "id é obrigatório" });
 
-    const found = await paymentService.get(id);
+    const found = await paymentService.findById(id); 
     if (!found)
       return res.status(404).json({ message: "Pagamento não encontrado" });
 
@@ -149,11 +154,10 @@ router.get("/order/:orderId", async (req: Request, res: Response) => {
       });
     }
 
-    const payments = await paymentService.listPaymentsByOrder(orderId);
+    const paymentsResult = await paymentService.list({ orderId });
     
     return res.json({
-      success: true,
-      data: payments
+      data: paymentsResult.data 
     });
   } catch (error) {
     console.error("Erro ao buscar pagamentos do pedido:", error);

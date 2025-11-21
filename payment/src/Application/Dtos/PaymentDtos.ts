@@ -1,15 +1,15 @@
-export type CreatePaymentDTO = {
-  orderId: string;
-  typePaymentIds: string[]; 
-  amountPaid: number;
-  paidAt?: Date | null;
-};
+export interface CreatePaymentDTO {
+    orderId: string;
+    amountPaid: number;
+    clientId: string;
+    typePaymentIds: string[];
+    // REMOVIDO: statusId é uma regra de negócio interna, não deve vir do Kafka.
+}
 
-export type UpdatePaymentDTO = {
-  id: string;
-  orderId?: string;
-  statusId?: number;
-  typePaymentIds?: string[];
-  amountPaid?: number;
-  paidAt?: Date | null;
-};
+export interface UpdatePaymentDTO {
+    id: string;
+    // CORRIGIDO: Usa statusId para alinhar com o schema do Prisma.
+    statusId?: number; 
+    amountPaid?: number;
+    paidAt?: Date | null;
+}

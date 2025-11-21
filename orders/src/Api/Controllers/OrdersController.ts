@@ -1,14 +1,18 @@
 import { Router, Request, Response } from "express";
 import { OrderService } from "../../Application/Services/OrderService";
 import { OrderRepository } from "../../Infrastructure/Repositories/OrderRepository";
-import { PaymentServiceHttpClient } from "../../External/apiPayments";
+// REMOVIDO: O import da PaymentServiceHttpClient não é mais necessário.
+// import { PaymentServiceHttpClient } from "../../External/apiPayments"; 
 import { ProductServiceHttpClient } from "../../External/apiProducts";
 
-// Injeção de Dependência
+// Injeção de Dependência Corrigida
 const orderRepository = new OrderRepository();
-const paymentService = new PaymentServiceHttpClient();
+// REMOVIDO: Não criamos mais a instância do serviço de pagamento.
+// const paymentService = new PaymentServiceHttpClient(); 
 const productService = new ProductServiceHttpClient();
-const orderService = new OrderService(orderRepository, paymentService, productService);
+
+// CORRIGIDO: O 'paymentService' foi removido da chamada do construtor.
+const orderService = new OrderService(orderRepository, productService);
 
 const router = Router();
 
@@ -40,7 +44,6 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // Adicionada verificação para garantir que o ID existe
     if (!id) {
       return res.status(400).json({ message: "O ID do pedido é obrigatório na URL." });
     }
@@ -58,7 +61,6 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.patch("/:id/status", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    // Adicionada verificação para garantir que o ID existe
     if (!id) {
       return res.status(400).json({ message: "O ID do pedido é obrigatório na URL." });
     }

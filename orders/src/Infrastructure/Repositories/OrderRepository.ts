@@ -1,40 +1,51 @@
-// src/Infrastructure/Repositories/OrderRepository.ts
-
 import { OrderStatus } from "@prisma/client";
 import { CreateOrderDTO } from "../../Application/Dtos/OrdersDto";
 import { FullOrder, IOrderRepository } from "../Interfaces/IorderRepository";
-import OrderModel, { IProductItem } from "../../Data/Db/Entities/OrderEntity"; // Importe o model
+import OrderModel, { IProductItem } from "../../Data/Db/Entities/OrderEntity";
 
-// NOTA: Seu tipo 'FullOrder' provavelmente será o mesmo que 'IOrder' do Mongoose.
-// Você pode ajustar a interface IOrderRepository para usar IOrder diretamente.
+// Define um tipo para os dados de criação para manter o código limpo.
+// A interface IorderRepository.ts também deve ser atualizada para usar este tipo.
+type CreateOrderData = {
+  clientId: string;
+  total: number;
+  products: IProductItem[];
+  status: string | OrderStatus;
+};
 
 export class OrderRepository implements IOrderRepository {
-  async create(dto: CreateOrderDTO, total: number, productItems: IProductItem[]): Promise<FullOrder> {
-    // Mongoose.create retorna o documento criado
+  // CORRIGIDO: O método agora aceita um único objeto 'data'
+  async create(data: CreateOrderData): Promise<FullOrder> {
+    const { clientId, total, products, status } = data; // Desestruturamos o objeto aqui
+
     const newOrder = await OrderModel.create({
-      clientId: dto.clientId,
-      total: total,
-      status: 'AWAITING_PAYMENT',
-      products: productItems,
+      clientId,
+      total,
+      status, // Usamos o status que foi passado pelo serviço
+      products,
     });
-    //@ts-ignore
-      return newOrder.toObject(); ; // .toObject() converte o documento Mongoose para um objeto JS puro
+    
+    // @ts-ignore
+    return newOrder.toObject();
+  }
+  
+  // ADICIONADO: Método 'remove' para a lógica de compensação do Kafka
+  async remove(id: string): Promise<FullOrder | null> {
+    // @ts-ignore
+    return OrderModel.findByIdAndDelete(id).lean();
   }
 
   async findById(id: string): Promise<FullOrder | null> {
-    //@ts-ignore
-    return OrderModel.findById(id).lean(); // .lean() retorna um objeto JS puro, mais rápido
+    // @ts-ignore
+    return OrderModel.findById(id).lean();
   }
 
   async findByClientId(clientId: string): Promise<FullOrder[]> {
-    //@ts-ignore
-    return OrderModel.find({ clientId })
-      .sort({ createdAt: -1 }) 
-      .lean();
+    // @ts-ignore
+    return OrderModel.find({ clientId }).sort({ createdAt: -1 }).lean();
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<FullOrder | null> {
-    //@ts-ignore
+    // @ts-ignore
     return OrderModel.findByIdAndUpdate(id, { status }, { new: true }).lean();
   }
 }
