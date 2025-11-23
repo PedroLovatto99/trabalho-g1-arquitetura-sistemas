@@ -20,13 +20,19 @@ export class PaymentService implements IPaymentService {
     
     // CORRIGIDO: O serviço agora passa um objeto de dados simples para o repositório.
     // A lógica de negócio ("statusId: 1") está aqui. A lógica de dados está no repositório.
-    return this.paymentRepository.create({
+    const paymentData: any = {
       orderId: dto.orderId,
       clientId: dto.clientId,
       amountPaid: dto.amountPaid,
-      statusId: 1, // Assumindo 1 = PENDING
-      // A relação 'paymentMethods' é tratada pelo Prisma no repositório.
-    });
+      // Conecta ao status inicial (1 = AGUARDANDO PAGAMENTO, conforme seu seed)
+      status: { connect: { id: 1 } }, 
+      // Conecta aos tipos de pagamento (ex: PIX, Cartão)
+      typePayments: { 
+        connect: dto.typePaymentIds.map(id => ({ id: String(id) })) 
+      }
+    };
+
+    return this.paymentRepository.create(paymentData);
   }
 
   async processPayment(

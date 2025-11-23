@@ -5,13 +5,18 @@ import { IPaymentRepository } from "../Interfaces/IPaymentRepository";
 export class PaymentRepository implements IPaymentRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async create(data: Prisma.PaymentUncheckedCreateInput): Promise<Payment> {
+  async create(data: Prisma.PaymentCreateInput): Promise<Payment> {
     return this.prisma.payment.create({ data });
   }
 
   async findById(id: string): Promise<Payment | null> {
-    // Retorna o objeto do Prisma diretamente
-    return this.prisma.payment.findUnique({ where: { id } });
+    return this.prisma.payment.findUnique({ 
+      where: { id },
+      include: {
+        typePayments: true,
+        status: true
+      }
+    });
   }
 
   async list(params?: {
@@ -30,6 +35,10 @@ export class PaymentRepository implements IPaymentRepository {
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
+        include: {
+          typePayments: true,
+          status: true
+        }
       }),
       this.prisma.payment.count({ where }),
     ]);

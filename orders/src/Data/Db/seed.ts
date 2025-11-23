@@ -26,13 +26,13 @@ async function seed() {
         $setOnInsert: {
           _id: SEED_ORDER_ID,
           clientId: SEED_USER_ID,
-          total: 99.99,
+          total: 79.99,
           status: 'PENDING_PAYMENT',
           products: [{
             productId: SEED_PRODUCT_ID,
-            productName: 'Produto de Teste',
+            productName: 'Controle PS5',
             quantity: 1,
-            unitPrice: 99.99,
+            unitPrice: 79.99,
           }],
           createdAt: new Date(),
         }

@@ -36,7 +36,6 @@ async function main() {
       amountPaid: 79.99,
       status: { connect: { id: 1 } }, // AGUARDANDO PAGAMENTO
       typePayments: { connect: [{ id: '1' }] }, // conecta PIX (id 1)
-      // ajuste outros campos se necessário (paidAt, createdAt implicitamente gerados)
     },
   });
 
