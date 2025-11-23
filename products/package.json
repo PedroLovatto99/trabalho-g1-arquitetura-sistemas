@@ -9,7 +9,8 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
   },
   "prisma": {
-    "schema": "src/Data/Db/Prisma/schema.prisma"
+    "schema": "src/Data/Db/Prisma/schema.prisma",
+    "seed": "node dist/Data/Db/Prisma/seed.js"
   },
   "keywords": [],
   "author": "",

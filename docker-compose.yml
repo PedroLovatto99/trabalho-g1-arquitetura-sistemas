@@ -1,3 +1,4 @@
+
 services:
   orders-db:
     image: mongo:6
@@ -10,6 +11,11 @@ services:
       - "27017:27017"
     volumes:
       - orders_mongo_data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')", "-u", "admin", "-p", "admin", "--authenticationDatabase", "admin" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   payments-db:
     image: postgres:15
@@ -19,10 +25,15 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: payments_db
-    volumes:
-      - payments_postgres_data:/var/lib/postgresql/data
     ports:
       - "5434:5432"
+    volumes:
+      - payments_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d payments_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   products-db:
     image: postgres:15
@@ -32,10 +43,15 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: products_db
-    volumes:
-      - products_postgres_data:/var/lib/postgresql/data
     ports:
       - "5435:5432"
+    volumes:
+      - products_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d products_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   users-db:
     image: postgres:15
@@ -45,11 +61,42 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: users_db
-    volumes:
-      - users_postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
+    volumes:
+      - users_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d users_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  user-service:
+    build: ./users
+    container_name: user_service
+    restart: always
+    ports:
+      - "3005:3000"
+    environment:
+      - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
+    depends_on:
+      users-db:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate dev --name init && npx prisma db seed && npm run start"
+
+  product-service:
+    build: ./products
+    container_name: product_service
+    restart: always
+    ports:
+      - "3004:3000"
+    environment:
+      - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
+    depends_on:
+      products-db:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate dev --name init && npx prisma db seed && npm run start"
+    
   order-service:
     build: ./orders
     container_name: order_service
@@ -62,43 +109,16 @@ services:
       - PAYMENTS_API_URL=http://payment-service:3000/api/payments
       - KAFKA_BROKER=kafka:9092
     depends_on:
-      - orders-db
-      - kafka 
-
-  product-service:
-    build: ./products
-    container_name: product_service
-    restart: always
-    ports:
-      - "3004:3000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
-      - PRISMA_SCHEMA_PATH=./src/Data/Db/Prisma/schema.prisma
-    depends_on:
-      - products-db
-
-  user-service:
-    build: ./users
-    container_name: user_service
-    restart: always
-    ports:
-      - "3005:3000"
-    environment:
-      - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
-      - PRISMA_SCHEMA_PATH=./src/Data/Db/prisma/schema.prisma
-    depends_on:
-      - users-db
-
-  notification-service:
-    build: ./notification
-    container_name: notification_service
-    restart: always
-    ports:
-      - "3007:3000"
-    environment:
-      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
-    depends_on:
-      - rabbitmq
+      orders-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      # Dependências para garantir a ordem correta do SEEDING
+      user-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+    command: sh -c "npm run db:seed && npm run start"
 
   payment-service:
     build: ./payment
@@ -110,17 +130,19 @@ services:
       - DATABASE_URL=postgresql://admin:admin@payments-db:5432/payments_db
       - ORDER_API_URL=http://order-service:3000/api/orders
       - PRODUCTS_API_URL=http://product-service:3000/api/products
-      - USER_API_URL=http://user-service:3000/api/clients # Adicionada a URL do serviço de usuários
-      # CORRIGIDO: Usando as credenciais corretas (admin/admin)
+      - USER_API_URL=http://user-service:3000/api/clients
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - KAFKA_BROKER=kafka:9092
     depends_on:
-      - payments-db
-      - order-service
-      - product-service
-      - notification-service
-      - kafka
-
+      payments-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      # Dependência para garantir a ordem correta do SEEDING
+      order-service:
+        condition: service_started
+    command: sh -c "npx prisma migrate dev --name init && npx prisma db seed && npm run start"
+    
   rabbitmq:
     image: rabbitmq:3.9-management
     container_name: rabbitmq
@@ -130,6 +152,23 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running", "-q"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification-service:
+    build: ./notification
+    container_name: notification_service
+    restart: always
+    ports:
+      - "3007:3000"
+    environment:
+      - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
@@ -137,22 +176,43 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
+    ports:
+      - "2181:2181"
+    healthcheck:
+      # TRUQUE: Usamos 'nc' (netcat) para enviar "ruok". Se responder "imok", está saudável.
+      # Isso gasta 0 de memória comparado ao 'cub'
+      test: echo ruok | nc localhost 2181 || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+      
     ports:
       - "9094:9094"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -179,6 +239,8 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:
       - payments-db
+      - products-db
+      - users-db
 
   mongo-express:
     image: mongo-express
