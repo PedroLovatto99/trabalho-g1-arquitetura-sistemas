@@ -76,4 +76,9 @@ export class PaymentRepository implements IPaymentRepository {
     });
     return Number(result._sum.amountPaid) || 0;
   }
+
+  async listTypes() {
+    return this.prisma.typePayment.findMany();
+  }
+  
 }

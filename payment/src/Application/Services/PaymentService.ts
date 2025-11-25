@@ -71,6 +71,10 @@ export class PaymentService implements IPaymentService {
     return this.paymentRepository.findById(id);
   }
 
+  listTypes() {
+    return this.paymentRepository.listTypes();
+  }
+
   list(params?: any) {
     return this.paymentRepository.list(params);
   }

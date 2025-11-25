@@ -8,4 +8,5 @@ export interface IPaymentRepository {
   findById(id: string): Promise<Payment | null>;
   list(params?: any): Promise<{ data: Payment[], total: number }>;
   sumByOrder(orderId: string): Promise<number>;
+  listTypes(): Promise<any[]>; 
 }

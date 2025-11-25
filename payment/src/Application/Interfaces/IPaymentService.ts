@@ -9,4 +9,5 @@ export interface IPaymentService {
   update(dto: UpdatePaymentDTO): Promise<Payment | null>;
   remove(id: string): Promise<Payment | null>;
   getOrderBalance(orderId: string): Promise<any>;
+  listTypes(): Promise<any[]>;
 }

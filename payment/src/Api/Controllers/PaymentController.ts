@@ -11,27 +11,17 @@ import { OrdersServiceHttpClient } from "../../External/apiOrders";
 import { ProductServiceHttpClient } from "../../External/apiProducts";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { UserApi } from "../../External/apiUsers"; 
-// você injeta a implementação concreta aqui
+
 const paymentService = new PaymentService(
   new PaymentRepository(new PrismaClient()),
   new OrdersServiceHttpClient(),
   new ProductServiceHttpClient(),
-  new UserApi() // <--- Argumento adicionado
+  new UserApi() 
 );
 
 
 const router = Router();
 
-// POST /api/payments
-// router.post("/", async (req: Request, res: Response) => {
-//   try {
-//     const dto = req.body as CreatePaymentDTO;
-//     const created = await paymentService.create(dto);
-//     res.status(201).json(created);
-//   } catch (error: any) {
-//     res.status(400).json({ message: error.message });
-//   }
-// });
 
 // POST Processar POST
 router.post(
@@ -85,6 +75,17 @@ router.get("/", async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message ?? "Internal server error" });
   }
 });
+
+router.get("/types", async (_req, res) => {
+  try {
+    const paymentTypes = await paymentService.listTypes();
+    res.status(200).json(paymentTypes);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+    res.status(500).json({ message: errorMessage });
+  }
+});
+
 
 // GET /api/payments/:id
 router.get("/:id", async (req: Request, res: Response) => {
@@ -167,6 +168,7 @@ router.get("/order/:orderId", async (req: Request, res: Response) => {
     });
   }
 });
+
 
 
 // GET /api/payments/order/:orderId/balance
