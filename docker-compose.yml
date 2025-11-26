@@ -312,7 +312,8 @@ services:
     container_name: kong_gateway
     restart: always
     environment:
-      KONG_DATABASE: postgres
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
       KONG_PG_HOST: kong-db
       KONG_PG_USER: kong
       KONG_PG_PASSWORD: kong_password
@@ -326,8 +327,10 @@ services:
       - "8443:8443"
       - "8001:8001"
       - "8444:8444"
+    volumes:
+      - ./kong/kong.yml:/etc/kong/kong.yml:ro
     depends_on:
-      - kong-migration
+      - kong-db
 
   konga:
     image: pantsel/konga

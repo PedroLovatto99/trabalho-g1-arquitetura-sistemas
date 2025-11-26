@@ -1,0 +1,79 @@
+_format_version: "3.0"
+
+services:
+  - name: product-service
+    url: http://product_service:3000
+    routes:
+      - name: products-route
+        paths:
+          - /api/products
+        strip_path: false
+  
+  - name: user-service
+    url: http://user_service:3000
+    routes:
+      - name: users-route
+        paths:
+          - /api/clients
+        strip_path: false
+
+  - name: order-service
+    url: http://order_service:3000
+    routes:
+      - name: orders-route
+        paths:
+          - /api/orders
+        strip_path: false
+
+  - name: payment-service
+    url: http://payment_service:3000
+    routes:
+      - name: payments-route
+        paths:
+          - /api/payments
+        strip_path: false
+
+plugins:
+    # produtos
+  - name: rate-limiting
+    service: product-service 
+    config:
+      minute: 10
+      policy: local
+  - name: request-size-limiting
+    service: product-service 
+    config:
+      allowed_payload_size: 204800 
+
+  # users
+  - name: rate-limiting
+    service: user-service
+    config:
+      minute: 10
+      policy: local
+  - name: request-size-limiting
+    service: user-service
+    config:
+      allowed_payload_size: 204800
+
+  # orders
+  - name: rate-limiting
+    service: order-service
+    config:
+      minute: 10
+      policy: local
+  - name: request-size-limiting
+    service: order-service
+    config:
+      allowed_payload_size: 204800
+  
+      # pagamentos
+  - name: rate-limiting
+    service: payment-service
+    config:
+      minute: 10
+      policy: local
+  - name: request-size-limiting
+    service: payment-service
+    config:
+      allowed_payload_size: 204800

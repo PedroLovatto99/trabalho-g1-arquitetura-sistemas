@@ -87,6 +87,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
+
 // PATCH /api/orders/:id/status
 router.patch("/:id/status", async (req: Request, res: Response) => {
   try {
@@ -99,6 +100,8 @@ router.patch("/:id/status", async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
+
 });
+
 
 export default router;
