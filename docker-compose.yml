@@ -75,8 +75,8 @@ services:
     build: ./users
     container_name: user_service
     restart: always
-    ports:
-      - "3005:3000"
+    # ports:
+    #   - "3005:3000"
     environment:
       - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
       - REDIS_URL=redis://redis-cache:6379
@@ -89,8 +89,8 @@ services:
     build: ./products
     container_name: product_service
     restart: always
-    ports:
-      - "3004:3000"
+    # ports:
+    #   - "3004:3000"
     environment:
       - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
       - REDIS_URL=redis://redis-cache:6379
@@ -103,8 +103,8 @@ services:
     build: ./orders
     container_name: order_service
     restart: always
-    ports:
-      - "3003:3000"
+    # ports:
+    #   - "3003:3000"
     environment:
       - DATABASE_URL=mongodb://admin:admin@orders-db:27017/orders_db?authSource=admin
       - PRODUCTS_API_URL=http://product-service:3000/api/products
@@ -116,7 +116,6 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-      # Dependências para garantir a ordem correta do SEEDING
       user-service:
         condition: service_started
       product-service:
@@ -127,8 +126,8 @@ services:
     build: ./payment
     container_name: payment_service
     restart: always
-    ports:
-      - "3006:3000"
+    # ports:
+    #   - "3006:3000"
     environment:
       - DATABASE_URL=postgresql://admin:admin@payments-db:5432/payments_db
       - ORDER_API_URL=http://order-service:3000/api/orders
@@ -186,8 +185,8 @@ services:
     build: ./notification
     container_name: notification_service
     restart: always
-    ports:
-      - "3007:3000"
+    # ports:
+    #   - "3007:3000"
     environment:
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
     depends_on:
@@ -282,6 +281,66 @@ services:
     depends_on:
       - orders-db
 
+  kong-db:
+    image: postgres:15
+    container_name: kong_db
+    restart: always
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong_password
+      POSTGRES_DB: kong
+    volumes:
+      - kong_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+
+  kong-migration:
+    image: kong:3.4
+    container_name: kong_migration
+    restart: on-failure
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong_password
+    command: "kong migrations bootstrap"
+    depends_on:
+      - kong-db
+
+  kong-gateway:
+    image: kong:3.4
+    container_name: kong_gateway
+    restart: always
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong_password
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001, 0.0.0.0:8444 ssl
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8444:8444"
+    depends_on:
+      - kong-migration
+
+  konga:
+    image: pantsel/konga
+    container_name: konga_ui
+    restart: always
+    environment:
+      NODE_ENV: development
+      KONGA_KONG_ADMIN_URL: http://kong-gateway:8001
+    ports:
+      - "1337:1337"
+    depends_on:
+      - kong-gateway
+
 volumes:
   orders_mongo_data:
   products_postgres_data:
@@ -289,3 +348,4 @@ volumes:
   payments_postgres_data:
   pgadmin_data:
   redis_data:
+  kong_postgres_data:
