@@ -6,6 +6,7 @@ import { IPaymentRepository } from "../../Infrastucture/Interfaces/IPaymentRepos
 import { sendPaymentNotification } from "../rabbitmq/notification_producer";
 import { CreatePaymentDTO, UpdatePaymentDTO } from "../Dtos/PaymentDtos";
 import { IPaymentService } from "../Interfaces/IPaymentService";
+import redisClient from "../../redis/redits"; // 
 
 export class PaymentService implements IPaymentService {
   constructor(
@@ -71,9 +72,25 @@ export class PaymentService implements IPaymentService {
     return this.paymentRepository.findById(id);
   }
 
-  listTypes() {
-    return this.paymentRepository.listTypes();
+async listTypes() {
+  const cacheKey = 'payment:types';
+  
+  const cachedTypes = await redisClient.get(cacheKey);
+  if (cachedTypes) {
+    console.log(`[Cache] HIT: ${cacheKey}`);
+    return JSON.parse(cachedTypes);
   }
+
+  console.log(`[Cache] MISS: ${cacheKey}`);
+  const types = await this.paymentRepository.listTypes();
+
+  // Salva no cache sem tempo de expiração
+  if (types && types.length > 0) {
+    await redisClient.set(cacheKey, JSON.stringify(types));
+  }
+
+  return types;
+}
 
   list(params?: any) {
     return this.paymentRepository.list(params);

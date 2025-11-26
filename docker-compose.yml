@@ -79,6 +79,7 @@ services:
       - "3005:3000"
     environment:
       - DATABASE_URL=postgresql://admin:admin@users-db:5432/users_db
+      - REDIS_URL=redis://redis-cache:6379
     depends_on:
       users-db:
         condition: service_healthy
@@ -92,6 +93,7 @@ services:
       - "3004:3000"
     environment:
       - DATABASE_URL=postgresql://admin:admin@products-db:5432/products_db
+      - REDIS_URL=redis://redis-cache:6379
     depends_on:
       products-db:
         condition: service_healthy
@@ -108,6 +110,7 @@ services:
       - PRODUCTS_API_URL=http://product-service:3000/api/products
       - PAYMENTS_API_URL=http://payment-service:3000/api/payments
       - KAFKA_BROKER=kafka:9092
+      - REDIS_URL=redis://redis-cache:6379
     depends_on:
       orders-db:
         condition: service_healthy
@@ -133,6 +136,7 @@ services:
       - USER_API_URL=http://user-service:3000/api/clients
       - RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672
       - KAFKA_BROKER=kafka:9092
+      - REDIS_URL=redis://redis-cache:6379
     depends_on:
       payments-db:
         condition: service_healthy

@@ -7,4 +7,5 @@ export interface IOrderService {
   findById(id: string): Promise<FullOrder | null>;
   findByClient(clientId: string): Promise<FullOrder[]>;
   updateStatus(id: string, dto: UpdateOrderStatusDTO): Promise<FullOrder>;
+  findAll(): Promise<FullOrder[]>;
 }

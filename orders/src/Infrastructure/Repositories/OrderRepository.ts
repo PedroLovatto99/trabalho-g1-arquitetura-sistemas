@@ -34,6 +34,15 @@ export class OrderRepository implements IOrderRepository {
     return OrderModel.findByIdAndDelete(id).lean();
   }
 
+  async findAll(): Promise<FullOrder[]> {
+    const orders = await OrderModel.find({})
+      .populate('products.productId')
+      .lean()
+      .exec();
+    return orders as unknown as FullOrder[];
+  }
+
+
   async findById(id: string): Promise<FullOrder | null> {
     // @ts-ignore
     return OrderModel.findById(id).lean();

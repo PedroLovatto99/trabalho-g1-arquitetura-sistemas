@@ -4,6 +4,7 @@ import { OrderRepository } from "../../Infrastructure/Repositories/OrderReposito
 // REMOVIDO: O import da PaymentServiceHttpClient não é mais necessário.
 // import { PaymentServiceHttpClient } from "../../External/apiPayments"; 
 import { ProductServiceHttpClient } from "../../External/apiProducts";
+import mongoose from "mongoose";
 
 // Injeção de Dependência Corrigida
 const orderRepository = new OrderRepository();
@@ -26,6 +27,25 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const { clientId } = req.query;
+
+    if (clientId && typeof clientId === 'string') {
+      // Se clientId for fornecido, busca por cliente
+      const orders = await orderService.findByClient(clientId);
+      return res.status(200).json(orders);
+    } else {
+      // Se não, lista todos os pedidos
+      const orders = await orderService.findAll();
+      return res.status(200).json(orders);
+    }
+  } catch (error: any) {
+    console.error(`[GET /orders] Erro:`, error);
+    res.status(500).json({ message: "Erro interno do servidor" });
+  }
+});
+
 // GET /api/orders?clientId=...
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -40,19 +60,29 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+
 // GET /api/orders/:id
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    
+    // Validação para garantir que o ID não seja undefined
     if (!id) {
-      return res.status(400).json({ message: "O ID do pedido é obrigatório na URL." });
+        return res.status(400).json({ message: "O ID do pedido é obrigatório." });
     }
+
+    // Validação do formato do ID do MongoDB
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "O ID do pedido fornecido tem um formato inválido." });
+    }
+
     const order = await orderService.findById(id);
     if (!order) {
       return res.status(404).json({ message: "Pedido não encontrado." });
     }
     res.status(200).json(order);
   } catch (error: any) {
+    console.error(`[GET /orders/:id] Erro:`, error); 
     res.status(500).json({ message: "Erro interno do servidor" });
   }
 });

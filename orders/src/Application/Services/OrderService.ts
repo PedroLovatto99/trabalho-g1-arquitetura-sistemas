@@ -9,7 +9,7 @@ import { CreateOrderDTO, UpdateOrderStatusDTO } from "../Dtos/OrdersDto";
 import { IOrderService } from "../Interfaces/IOrdersService";
 import { ProductItem } from "@prisma/client";
 import { producer, TOPIC_NAME } from '../../index';
-
+import redisClient from "../../redis/redits";
 
 
 export class OrderService implements IOrderService {
@@ -89,7 +89,28 @@ export class OrderService implements IOrderService {
   }
 
   async findById(id: string): Promise<FullOrder | null> {
-    return this.orderRepo.findById(id);
+    const cacheKey = `order:${id}`;
+    
+    const cachedOrder = await redisClient.get(cacheKey);
+    if (cachedOrder) {
+      console.log(`[Cache] HIT: ${cacheKey}`);
+      return JSON.parse(cachedOrder);
+    }
+
+    console.log(`[Cache] MISS: ${cacheKey}`);
+    // 3. Corrigido para usar 'this.orderRepo', conforme definido no construtor
+    const order = await this.orderRepo.findById(id);
+
+    // Salva no cache com TTL de 30 dias (2592000 segundos)
+    if (order) {
+      await redisClient.set(cacheKey, JSON.stringify(order), { EX: 2592000 });
+    }
+
+    return order;
+  }
+
+    async findAll(): Promise<FullOrder[]> {
+    return this.orderRepo.findAll();
   }
 
   async findByClient(clientId: string): Promise<FullOrder[]> {

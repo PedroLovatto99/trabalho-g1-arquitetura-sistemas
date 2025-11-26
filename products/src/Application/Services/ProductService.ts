@@ -2,9 +2,15 @@ import { ProductDto } from "../Dtos/ProductDto"; // Usaremos um DTO mais simples
 import { IProductRepository } from "../../Infrastructure/Interfaces/IProductRepository";
 import { ProductEntity } from "../../Data/Db/Entities/Product";
 import { IProductService } from "../Interfaces/IProductService";
-
+import redisClient from "../../redis/redits";
 export class ProductService implements IProductService {
   constructor(private readonly repo: IProductRepository) {}
+
+  private async invalidateProductsCache() {
+    const cacheKey = 'products:all';
+    await redisClient.del(cacheKey);
+    console.log(`[Cache] Invalidado: ${cacheKey}`);
+  }
 
   async create(dto: ProductDto): Promise<ProductEntity> {
     // Validações de negócio
@@ -18,7 +24,23 @@ export class ProductService implements IProductService {
   }
 
   async findAll(): Promise<ProductEntity[]> {
-    return this.repo.findMany();
+    const cacheKey = 'products:all';
+
+    // 2. Tenta buscar do cache primeiro
+    const cachedProducts = await redisClient.get(cacheKey);
+    if (cachedProducts) {
+      console.log(`[Cache] HIT: ${cacheKey}`);
+      return JSON.parse(cachedProducts);
+    }
+
+    // 3. Se não encontrar, busca no banco
+    console.log(`[Cache] MISS: ${cacheKey}`);
+    const products = await this.repo.findMany();
+
+    // Salva no cache com TTL de 4 horas (14400 segundos) antes de retornar
+    await redisClient.set(cacheKey, JSON.stringify(products), { EX: 14400 });
+
+    return products;
   }
 
   async findById(id: string): Promise<ProductEntity | null> {

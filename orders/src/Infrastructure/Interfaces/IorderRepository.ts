@@ -36,4 +36,5 @@ export interface IOrderRepository {
   findById(id: string): Promise<FullOrder | null>;
   findByClientId(clientId: string): Promise<FullOrder[]>;
   updateStatus(id: string, status: OrderStatus): Promise<FullOrder | null>;
+  findAll(): Promise<FullOrder[]>; 
 }
