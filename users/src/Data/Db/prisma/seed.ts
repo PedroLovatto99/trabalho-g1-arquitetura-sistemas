@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // ID Fixo para garantir consistência entre os serviços
-export const SEED_USER_ID = '25792b49-52ba-47ec-9a8d-c7c5fdb7a200';
+export const SEED_USER_ID = 'a7846e57-c5c7-4741-bb67-32e70a617309';
 
 async function main() {
   console.log('Seeding: Tabela de Clientes (Users)...');

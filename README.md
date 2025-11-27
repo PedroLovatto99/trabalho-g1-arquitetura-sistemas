@@ -51,17 +51,17 @@ curl -i -X POST http://localhost:8000/api/clients \
 ### Buscar um usuário por ID
 
 ```bash
-curl -i http://localhost:8000/api/clients/25792b49-52ba-47ec-9a8d-c7c5fdb7a200
+curl -i http://localhost:8000/api/clients/a7846e57-c5c7-4741-bb67-32e70a617309
 ```
 
 ### Atualizar a informação de um usuário
 
 ```bash
-curl -i -X PUT http://localhost:8000/api/users/25792b49-52ba-47ec-9a8d-c7c5fdb7a200 \
+curl -i -X PUT http://localhost:8000/api/users/a7846e57-c5c7-4741-bb67-32e70a617309 \
 -H "Content-Type: application/json" \
 -d '{
     "name": "novonome",
-    "email": "novoemail@example.com",
+    "email": "novoemail@example.com"
 }'
 ```
 
