@@ -24,7 +24,7 @@ docker-compose up
 - docker-compose logs order-service
 - docker-compose logs product-service
 - docker-compose logs user-service
-- Mensagem de quando o resultado é armazenado na cache: **[Cache] MISS:** <resto da mensagem>  
+- Mensagem de quando o resultado não é pego na cache: **[Cache] MISS:** <resto da mensagem>  
 - Mensagem de quando o valor na cache foi consultado: **[Cache] HIT:** <resto da mensagem>
 
 ## Obs⁴: Para verificar a mensagem de sucesso do Kakfa, após rodar o comando de criar um pedido/order, cheque o terminal que o comando docker-compose up foi rodado, se foi utilizado o -d junto para continuar usando o terminal, a mensagem não irá aparecer.
