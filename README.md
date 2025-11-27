@@ -199,13 +199,13 @@ curl -i http://localhost:8000/api/payments/types
 
 ### Processar um pagamento
 ### obs: apesar de ser uma requisição POST, não precisa passar nada como body
-### obs²: aqui é necessário pegar o id do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
+### obs²: aqui é necessário pegar o id do payment que retorna do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
 ```bash
 curl -i -X POST http://localhost:8000/api/payments/process/<PAYMENT_ID>
 ```
 
 ### Visualizar um pagamento específico
-### obs: aqui é necessário pegar o id do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
+### obs: aqui é necessário pegar o id do payment que retorna do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
 ```bash
 curl -i http://localhost:8000/api/payments/<PAYMENT_ID>
 ```
