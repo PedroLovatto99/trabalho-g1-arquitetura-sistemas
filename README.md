@@ -1,5 +1,33 @@
-## Obs: professor, os IDs de users, products, orders e payments para endpoints que precisam do ID eu estou usando o id que foi determinado nas seed
+# Para iniciar o projeto:
 
+### Clone o repositório
+```bash
+git clone https://github.com/PedroLovatto99/trabalho-g1-arquitetura-sistemas.git
+```
+
+### Rode o docker-compose para iniciar a aplicação com dados prontos com a seed
+```bash
+docker-compose up
+```
+### ⚠️ NÃO UTILIZE O -d
+
+----------------
+
+# Alguns pontos:
+
+## Obs: Os IDs de users, products, orders e payments para endpoints que precisam do ID eu estou usando o id que foi determinado nas seed.
+
+## Obs²: Todos os comandos foram testados no Git bash,  pelo o que eu pesquisei, no Windows a sintaxe muda em alguns comandos relacionados de curl
+
+## Obs³: Para testar se a cache funcionou, é necessário rodar o(s) comando(s) 
+- docker-compose logs payment-service
+- docker-compose logs order-service
+- docker-compose logs product-service
+- docker-compose logs user-service
+- Mensagem de quando o resultado é armazenado na cache: **[Cache] MISS:** <resto da mensagem>  
+- Mensagem de quando o valor na cache foi consultado: **[Cache] HIT:** <resto da mensagem>
+
+## Obs⁴: Para verificar a mensagem de sucesso do Kakfa, após rodar o comando de criar um pedido/order, cheque o terminal que o comando docker-compose up foi rodado, se foi utilizado o -d junto para continuar usando o terminal, a mensagem não irá aparecer.
 
 # Users
 
@@ -38,6 +66,7 @@ curl -i -X PUT http://localhost:8000/api/users/25792b49-52ba-47ec-9a8d-c7c5fdb7a
 ```
 
 ### Deletar um usuário
+### obs: é melhor deixar o comando DELETE por último, senão na hora de criar o order o user com esse ID não vai existir
 
 ```bash
 curl -i -X DELETE http://localhost:8000/api/clients/25792b49-52ba-47ec-9a8d-c7c5fdb7a200
@@ -96,6 +125,7 @@ curl -i -X PUT http://localhost:8000/api/products/88e1a0ce-c7ab-44ef-aab3-947611
 ```
 
 ### Deletar um produto
+### obs: é melhor deixar o comando DELETE por último, senão na hora de criar o order o produto com esse ID não vai existir
 
 ```bash
 curl -i -X DELETE http://localhost:8000/api/products/88e1a0ce-c7ab-44ef-aab3-94761167770d
@@ -155,6 +185,12 @@ curl -i -X PATCH http://localhost:8000/api/orders/6920a5c7e79d84019ecc3470/statu
 # Payments
 
 
+### Listar todos os payments
+
+```bash
+curl -i http://localhost:8000/api/payments
+```
+
 ### Listar tipos de pagamento
 
 ```bash
@@ -163,12 +199,13 @@ curl -i http://localhost:8000/api/payments/types
 
 ### Processar um pagamento
 ### obs: apesar de ser uma requisição POST, não precisa passar nada como body
+### obs²: aqui é necessário pegar o id do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
 ```bash
-curl -i -X POST http://localhost:8000/api/payments/process/44be453f-31d9-4d1e-b6a0-98bfe1a27d94
+curl -i -X POST http://localhost:8000/api/payments/process/<PAYMENT_ID>
 ```
 
 ### Visualizar um pagamento específico
-
+### obs: aqui é necessário pegar o id do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
 ```bash
-curl -i http://localhost:8000/api/payments/44be453f-31d9-4d1e-b6a0-98bfe1a27d94
+curl -i http://localhost:8000/api/payments/<PAYMENT_ID>
 ```
