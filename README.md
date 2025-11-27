@@ -29,6 +29,10 @@ docker-compose up
 
 ## Obs⁴: Para verificar a mensagem de sucesso do Kakfa, após rodar o comando de criar um pedido/order, cheque o terminal que o comando docker-compose up foi rodado, se foi utilizado o -d junto para continuar usando o terminal, a mensagem não irá aparecer.
 
+----------
+
+# Comandos Curl
+
 # Users
 
 ### Listar todos os usuários
