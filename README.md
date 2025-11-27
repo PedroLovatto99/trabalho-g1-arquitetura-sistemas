@@ -17,7 +17,7 @@ docker-compose up
 
 ## Obs: Os IDs de users, products, orders e payments para endpoints que precisam do ID eu estou usando o id que foi determinado nas seed.
 
-## Obs²: Todos os comandos foram testados no Git bash,  pelo o que eu pesquisei, no Windows a sintaxe muda em alguns comandos relacionados de curl
+## Obs²: Todos os comandos foram testados no Git bash, pelo o que eu pesquisei, no Windows a sintaxe muda em alguns comandos de curl, então no terminal do Windows não vai funcionar.
 
 ## Obs³: Para testar se a cache funcionou, é necessário rodar o(s) comando(s) 
 - docker-compose logs payment-service
