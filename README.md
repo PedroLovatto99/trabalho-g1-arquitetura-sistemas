@@ -5,6 +5,11 @@
 git clone https://github.com/PedroLovatto99/trabalho-g1-arquitetura-sistemas.git
 ```
 
+### Entre na pasta que foi gerada
+```bash
+cd trabalho-g1-arquitetura-sistemas
+```
+
 ### Rode o docker-compose para iniciar a aplicação com dados prontos com a seed
 ```bash
 docker-compose up
