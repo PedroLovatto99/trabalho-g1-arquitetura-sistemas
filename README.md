@@ -66,7 +66,7 @@ curl -i http://localhost:8000/api/clients/a7846e57-c5c7-4741-bb67-32e70a617309
 ### Atualizar a informação de um usuário
 
 ```bash
-curl -i -X PUT http://localhost:8000/api/users/a7846e57-c5c7-4741-bb67-32e70a617309 \
+curl -i -X PUT http://localhost:8000/api/clients/a7846e57-c5c7-4741-bb67-32e70a617309 \
 -H "Content-Type: application/json" \
 -d '{
     "name": "novonome",
@@ -78,7 +78,8 @@ curl -i -X PUT http://localhost:8000/api/users/a7846e57-c5c7-4741-bb67-32e70a617
 ### obs: é melhor deixar o comando DELETE por último, senão na hora de criar o order o user com esse ID não vai existir
 
 ```bash
-curl -i -X DELETE http://localhost:8000/api/clients/25792b49-52ba-47ec-9a8d-c7c5fdb7a200
+curl -i -X DELETE http://localhost:8000/api/clients/a7846e57-c5c7-4741-bb67-32e70a617309
+
 ```
 
 
@@ -150,7 +151,7 @@ curl -i -X DELETE http://localhost:8000/api/products/88e1a0ce-c7ab-44ef-aab3-947
 curl -i -X POST http://localhost:8000/api/orders \
 -H "Content-Type: application/json" \
 -d '{
-    "clientId": "25792b49-52ba-47ec-9a8d-c7c5fdb7a200",
+    "clientId": "a7846e57-c5c7-4741-bb67-32e70a617309",
     "products": [
       { 
         "productId": "88e1a0ce-c7ab-44ef-aab3-94761167770d", "quantity": 1 
@@ -171,7 +172,7 @@ curl -i http://localhost:8000/api/orders
 ### Listar os pedidos de um cliente específico
 
 ```bash
-curl -i http://localhost:8000/api/orders?clientId=25792b49-52ba-47ec-9a8d-c7c5fdb7a200
+curl -i http://localhost:8000/api/orders?clientId=a7846e57-c5c7-4741-bb67-32e70a617309
 ```
 
 ### Buscar um pedido por ID
@@ -209,6 +210,7 @@ curl -i http://localhost:8000/api/payments/types
 ### Processar um pagamento
 ### obs: apesar de ser uma requisição POST, não precisa passar nada como body
 ### obs²: aqui é necessário pegar o id do payment que retorna do primeiro GET, pois por conta da seed o payment ID muda quando o docker-compose é iniciado
+### obs³: o resultado se o pagamento é bem-sucedido é aleatório, então se aparecer "falha no pagamento" no próximo comando é só rodar esse comando até aparecer "Pago"
 ```bash
 curl -i -X POST http://localhost:8000/api/payments/process/<PAYMENT_ID>
 ```

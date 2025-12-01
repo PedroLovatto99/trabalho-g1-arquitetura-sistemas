@@ -4,7 +4,7 @@ import  Order  from './Entities/OrderEntity';
 import 'dotenv/config'; // Para carregar .env
 
 // IDs fixos dos outros serviços para garantir consistência
-const SEED_USER_ID = '25792b49-52ba-47ec-9a8d-c7c5fdb7a200';
+const SEED_USER_ID = 'a7846e57-c5c7-4741-bb67-32e70a617309';
 const SEED_PRODUCT_ID = '88e1a0ce-c7ab-44ef-aab3-94761167770d';
 export const SEED_ORDER_ID = new mongoose.Types.ObjectId('6920a5c7e79d84019ecc3470');
 
